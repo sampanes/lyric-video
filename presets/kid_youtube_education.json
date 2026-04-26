@@ -1,0 +1,34 @@
+{
+  "id": "kid_youtube_education",
+  "label": "Kid YouTube Education",
+  "description": "A conservative first habit preset for readable kid-friendly educational lyric videos.",
+  "layout": "standard",
+  "output": {
+    "targets": [
+      "horizontal"
+    ],
+    "fps": 30
+  },
+  "subtitle_style": "kid_readable",
+  "subtitle": {
+    "font": "Arial Rounded MT Bold",
+    "primary_colour": "&H00FFFFFF",
+    "secondary_colour": "&H000000FF",
+    "outline_colour": "&H00412C12",
+    "back_colour": "&H99000000",
+    "bold": true
+  },
+  "background_mode": "solid",
+  "prompt_defaults": {
+    "audience": "kids",
+    "mood": "bright, clear, friendly, educational",
+    "motion": "simple background motion only, no complex characters",
+    "safety": "avoid scary, adult, violent, or chaotic imagery"
+  },
+  "future_notes": [
+    "Current renderer applies target, fps, layout, and subtitle font/color defaults.",
+    "Prompt defaults are documented for the future ComfyUI adapter and are not consumed by the basic FFmpeg renderer yet.",
+    "Use song-specific inputs/song_style_prompt.txt and song_vibes for actual creative direction."
+  ]
+}
+

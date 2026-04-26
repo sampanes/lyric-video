@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Packaging and builds
+build/
+dist/
+*.egg-info/
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+
+# Local environment files
+.env
+.env.*
+LOCAL_PATHS.md
+SECRETS.md
+LLM_DUMP.md
+
+# Keep a tracked template song later, but ignore production song workspaces by default.
+songs/*
+!songs/README.md
+!songs/template_song/
+!songs/template_song/**
+
+# Common generated outputs that should stay local.
+**/renders/
+**/exports/
+!songs/template_song/renders/
+songs/template_song/renders/*
+!songs/template_song/renders/.gitkeep
+!songs/template_song/exports/
+songs/template_song/exports/*
+!songs/template_song/exports/.gitkeep
+**/*.tmp
+**/*.temp

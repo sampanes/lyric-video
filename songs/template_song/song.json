@@ -1,0 +1,27 @@
+{
+  "id": "template_song",
+  "title": "Template Song",
+  "artist": "Unknown Artist",
+  "song_vibes": "high energy, male vocalist, gritty bar-room feel",
+  "style_prompt": "inputs/song_style_prompt.txt",
+  "bpm": null,
+  "audio": "inputs/audio/song.wav",
+  "lyrics": "inputs/lyrics/lyrics.txt",
+  "timing": {
+    "raw": "timing/raw/",
+    "reviewed": "timing/reviewed/timing.json"
+  },
+  "subtitle_style": "classic",
+  "background_mode": "solid",
+  "backgrounds": [],
+  "output": {
+    "directory": "exports/",
+    "filename": "template_song.mp4",
+    "targets": [
+      "horizontal"
+    ],
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  }
+}
