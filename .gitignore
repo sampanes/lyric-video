@@ -23,6 +23,7 @@ Thumbs.db
 .env
 .env.*
 LOCAL_PATHS.md
+LOCAL_PRIVACY_TERMS.txt
 SECRETS.md
 LLM_DUMP.md
 

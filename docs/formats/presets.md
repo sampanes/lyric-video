@@ -52,9 +52,14 @@ The current basic renderer applies:
 - `subtitle.font`
 - ASS subtitle colors and bold setting under `subtitle`
 
+Supported layout values are:
+
+- `standard`
+- `fullscreen`
+- `soft_scroll`
+
 ## Future Use
 
 `prompt_defaults` exists for the future ComfyUI adapter. It should be combined
 with song-specific `song_vibes` and `inputs/song_style_prompt.txt`, not used as
 a replacement for them.
-

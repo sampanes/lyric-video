@@ -18,6 +18,10 @@ Current tools:
   `--refresh-whisper` when you want it to run WhisperX first and use that rough
   timing evidence. Add `--preset kid_youtube_education` when you want a tracked
   repeatable render habit.
+- `privacy_check.py` scans tracked files, and optionally untracked non-ignored
+  files, for personal names and machine-specific paths before pushing public
+  work. Put machine-specific blocked terms in ignored
+  `LOCAL_PRIVACY_TERMS.txt`.
 - `whisper_song.py` runs WhisperX from the external venv and stores raw
   transcript artifacts under `timing/raw/whisper/`.
 - `intake_song.py` creates or updates `songs/<song>/song.json`, auto-detects
@@ -42,9 +46,11 @@ Example:
 ```powershell
 python scripts\make_videos.py "man behind the bar" --refresh-whisper --targets all
 python scripts\make_videos.py "man behind the bar" --force --targets horizontal --layout fullscreen
+python scripts\make_videos.py "man behind the bar" --force --targets horizontal --layout soft_scroll
 python scripts\make_videos.py "man behind the bar" --preset kid_youtube_education
 python scripts\inspect_song.py "man behind the bar"
 python scripts\smoke_test.py
+python scripts\privacy_check.py --include-untracked
 python scripts\validate_song.py "man behind the bar" --require-timing --check-tools
 python scripts\make_basic_video.py "man behind the bar" --force
 python scripts\make_basic_video.py "man behind the bar" --refresh-whisper
@@ -59,6 +65,8 @@ python scripts\render_vibe_video.py "man behind the bar" assets\backgrounds\bar_
 
 Target options are `horizontal`, `vertical`, `square`, `portrait`, or `all`.
 They produce target-specific subtitle files and MP4 exports.
+
+Layout options are `standard`, `fullscreen`, and `soft_scroll`.
 
 Use the separate Whisper command only when you want to inspect transcription
 output without rendering:

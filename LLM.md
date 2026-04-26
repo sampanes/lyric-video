@@ -182,6 +182,12 @@ For large centered lyrics, add:
 python scripts\make_videos.py "approximate song name" --force --targets horizontal --layout fullscreen
 ```
 
+For a gentle scrolling lyric treatment, add:
+
+```powershell
+python scripts\make_videos.py "approximate song name" --force --targets horizontal --layout soft_scroll
+```
+
 For a repeatable format habit, use a preset:
 
 ```powershell
@@ -196,6 +202,12 @@ For repo health checks without a real song, run:
 
 ```powershell
 python scripts\smoke_test.py
+```
+
+Before public pushes or commits intended for GitHub, run:
+
+```powershell
+python scripts\privacy_check.py --include-untracked
 ```
 
 To inspect a song folder without changing it, run:

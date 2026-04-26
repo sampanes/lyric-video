@@ -13,8 +13,8 @@ from pipeline_common import (
     load_json,
     load_preset,
     normalize_render_targets,
-    preset_layout,
     render_basic_video,
+    resolve_layout,
     resolve_song_dir,
     validate_song_package,
     write_ass_file,
@@ -50,7 +50,7 @@ def main(description: str | None = None) -> int:
     )
     parser.add_argument(
         "--layout",
-        choices=("standard", "fullscreen"),
+        choices=("standard", "fullscreen", "soft_scroll"),
         default=None,
         help="Lyric layout to render. Overrides preset layout when provided.",
     )
@@ -123,7 +123,7 @@ def main(description: str | None = None) -> int:
     else:
         timing = load_json(timing_path)
 
-    layout = args.layout or preset_layout(preset) or config.get("layout") or "standard"
+    layout = resolve_layout(args.layout, preset, config)
     configured_targets = config.get("output", {}).get("targets")
     targets = normalize_render_targets(args.targets if args.targets is not None else configured_targets)
     outputs = []

@@ -208,10 +208,14 @@ This makes it possible to:
   `python scripts\make_videos.py "man behind the bar" --refresh-whisper`.
 - Multi-aspect output is available with
   `python scripts\make_videos.py "man behind the bar" --targets all`.
+- A gentle scrolling lyric display is available with
+  `python scripts\make_videos.py "man behind the bar" --layout soft_scroll`.
 - Repeatable output habits are captured as presets, for example
   `python scripts\make_videos.py "man behind the bar" --preset kid_youtube_education`.
 - A synthetic end-to-end smoke test is available with
   `python scripts\smoke_test.py`.
+- A pre-push privacy scan is available with
+  `python scripts\privacy_check.py --include-untracked`.
 
 ---
 
@@ -319,6 +323,12 @@ For a large centered lyric treatment:
 python scripts\make_videos.py "approximate song name" --force --targets horizontal --layout fullscreen
 ```
 
+For a gentle scrolling lyric treatment:
+
+```powershell
+python scripts\make_videos.py "approximate song name" --force --targets horizontal --layout soft_scroll
+```
+
 For a repeatable habit preset:
 
 ```powershell
@@ -338,6 +348,15 @@ python scripts\smoke_test.py
 Planned display modes such as fullscreen lyrics, rolling lyrics, and karaoke
 lyrics are documented in `docs/formats/lyric-layouts.md`. Rolling lyrics are a
 candidate solution for reducing the cost of tiny timing corrections.
+
+Before public pushes, run:
+
+```powershell
+python scripts\privacy_check.py --include-untracked
+```
+
+Machine-specific blocked words can live in ignored `LOCAL_PRIVACY_TERMS.txt`,
+one term per line.
 
 ---
 

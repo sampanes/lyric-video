@@ -108,6 +108,18 @@ Fullscreen layout exports add the layout name to the filename, for example:
 exports/song-name.horizontal.fullscreen.mp4
 ```
 
+For a gentle scrolling lyric treatment:
+
+```powershell
+python scripts\make_videos.py "song name" --force --targets horizontal --layout soft_scroll
+```
+
+Soft-scroll exports include the layout name:
+
+```text
+exports/song-name.horizontal.soft_scroll.mp4
+```
+
 ## Timing Responsibility
 
 The source lyric file is authoritative. Whisper/WhisperX output is evidence,

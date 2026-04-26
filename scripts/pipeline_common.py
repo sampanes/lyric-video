@@ -24,6 +24,7 @@ LYRIC_EXTENSIONS = {".txt", ".md", ".lrc"}
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".webm", ".mkv"}
 SONG_STYLE_PROMPT_FILENAME = "song_style_prompt.txt"
+LAYOUTS = ("standard", "fullscreen", "soft_scroll")
 SUSPICIOUS_TEXT_MARKERS = {
     "\ufffd": "Unicode replacement character",
     "â€œ": "mojibake for left double quote",
@@ -134,6 +135,10 @@ def available_render_targets() -> str:
     return ", ".join(RENDER_TARGETS)
 
 
+def available_layouts() -> str:
+    return ", ".join(LAYOUTS)
+
+
 def preset_key(value: str) -> str:
     cleaned = re.sub(r"[^a-zA-Z0-9]+", "_", value.strip().lower())
     return re.sub(r"_+", "_", cleaned).strip("_")
@@ -204,9 +209,16 @@ def preset_layout(preset: dict) -> str | None:
     value = preset.get("layout") if preset else None
     if value is None:
         return None
-    if value not in {"standard", "fullscreen"}:
-        raise SystemExit(f"Preset layout must be standard or fullscreen, got {value!r}.")
+    if value not in LAYOUTS:
+        raise SystemExit(f"Preset layout must be one of {available_layouts()}, got {value!r}.")
     return value
+
+
+def resolve_layout(cli_layout: str | None, preset: dict | None, config: dict) -> str:
+    layout = cli_layout or preset_layout(preset or {}) or config.get("layout") or "standard"
+    if layout not in LAYOUTS:
+        raise SystemExit(f"Unknown lyric layout '{layout}'. Expected one of: {available_layouts()}.")
+    return layout
 
 
 def normalize_render_targets(raw_targets: str | list[str] | None) -> list[str]:
@@ -793,8 +805,8 @@ def build_ass(
     layout: str = "standard",
     config: dict | None = None,
 ) -> str:
-    if layout not in {"standard", "fullscreen"}:
-        raise SystemExit(f"Unknown lyric layout '{layout}'. Expected standard or fullscreen.")
+    if layout not in LAYOUTS:
+        raise SystemExit(f"Unknown lyric layout '{layout}'. Expected one of: {available_layouts()}.")
 
     subtitle_options = config.get("subtitle", {}) if isinstance(config, dict) else {}
     if not isinstance(subtitle_options, dict):
@@ -829,15 +841,20 @@ def build_ass(
     target = render_target(target_name)
     width = int(target["width"])
     height = int(target["height"])
-    margin_h = max(60, math.floor(width * (0.08 if layout == "fullscreen" else 0.10)))
-    margin_v = max(80, math.floor(height * float(target["bottom_margin_pct"])))
+    margin_h = max(60, math.floor(width * (0.08 if layout in {"fullscreen", "soft_scroll"} else 0.10)))
+    margin_v = max(80, math.floor(height * (0.10 if layout == "soft_scroll" else float(target["bottom_margin_pct"]))))
     available_width = width - margin_h * 2
-    font_divisor = 9 if layout == "fullscreen" else float(target["font_divisor"])
+    if layout == "fullscreen":
+        font_divisor = 9
+    elif layout == "soft_scroll":
+        font_divisor = 13
+    else:
+        font_divisor = float(target["font_divisor"])
     font_size = max(42, math.floor(min(width, height) / font_divisor))
     wrap_chars = max(18, math.floor(available_width / (font_size * 0.52)))
-    alignment = 5 if layout == "fullscreen" else 2
-    outline = 5 if layout == "fullscreen" else 4
-    shadow = 3 if layout == "fullscreen" else 2
+    alignment = 5 if layout in {"fullscreen", "soft_scroll"} else 2
+    outline = 5 if layout in {"fullscreen", "soft_scroll"} else 4
+    shadow = 3 if layout in {"fullscreen", "soft_scroll"} else 2
     lines = [
         "[Script Info]",
         "ScriptType: v4.00+",
@@ -861,9 +878,21 @@ def build_ass(
 
     for segment in timing["segments"]:
         text = wrap_lyric_for_ass(segment["text"], wrap_chars, font_size, available_width)
+        if layout == "soft_scroll":
+            event_start = max(0, int(segment["start_ms"]) - 350)
+            event_end = int(segment["end_ms"]) + 450
+            start_y = math.floor(height * 0.68)
+            end_y = math.floor(height * 0.40)
+            text = (
+                r"{\an5\move("
+                f"{width // 2},{start_y},{width // 2},{end_y})"
+                r"\fad(280,420)}"
+                + text
+            )
         lines.append(
             "Dialogue: 0,"
-            f"{ass_time(segment['start_ms'])},{ass_time(segment['end_ms'])},"
+            f"{ass_time(event_start if layout == 'soft_scroll' else segment['start_ms'])},"
+            f"{ass_time(event_end if layout == 'soft_scroll' else segment['end_ms'])},"
             f"Default,{segment['id']},0,0,0,,{text}"
         )
     return "\n".join(lines) + "\n"
@@ -1147,6 +1176,7 @@ def render_video_background(
     ass_path: Path,
     background_video_path: Path,
     target_name: str = "horizontal",
+    layout: str = "standard",
     variant: str = "vibe",
 ) -> Path:
     target = render_target(target_name)
@@ -1219,6 +1249,10 @@ def render_video_background(
                 "suffix": target["suffix"],
             },
             "variant": variant,
+            "layout": layout,
+            "preset": config.get("_render_preset"),
+            "preset_path": config.get("_render_preset_path"),
+            "subtitle": config.get("subtitle", {}),
             "audio": audio_relative,
             "background_video": background_input,
             "subtitles": ass_relative,

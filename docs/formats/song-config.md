@@ -59,6 +59,9 @@ The song config is the source of truth for:
 - Presets under `presets/` may provide repeatable render defaults such as
   target, fps, layout, and subtitle font. They do not replace song-specific
   config fields.
+- Optional `layout` can be set in `song.json`, supplied by a preset, or
+  overridden with CLI `--layout`. Current values are `standard`, `fullscreen`,
+  and `soft_scroll`.
 - `song_vibes` should capture the vibe prompt or creative direction that helped
   generate or define the song.
 - When config is created automatically, `song_vibes` can be seeded from

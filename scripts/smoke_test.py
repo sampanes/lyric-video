@@ -40,7 +40,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--layout",
-        choices=("standard", "fullscreen"),
+        choices=("standard", "fullscreen", "soft_scroll"),
         default=None,
         help="Lyric layout for the smoke test. Defaults to preset/script layout.",
     )

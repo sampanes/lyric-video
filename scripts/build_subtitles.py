@@ -5,11 +5,14 @@ from __future__ import annotations
 import argparse
 
 from pipeline_common import (
+    apply_preset_to_config,
     build_even_timing,
     build_whisper_timing,
     ensure_song_config,
     load_json,
+    load_preset,
     normalize_render_targets,
+    resolve_layout,
     resolve_song_dir,
     validate_song_package,
     write_ass_file,
@@ -37,15 +40,21 @@ def main() -> int:
         help="Render targets to build subtitles for: horizontal, vertical, square, portrait, or all.",
     )
     parser.add_argument(
+        "--preset",
+        default=None,
+        help="Render preset name or JSON path.",
+    )
+    parser.add_argument(
         "--layout",
-        choices=("standard", "fullscreen"),
-        default="standard",
-        help="Lyric layout to build.",
+        choices=("standard", "fullscreen", "soft_scroll"),
+        default=None,
+        help="Lyric layout to build. Overrides preset layout when provided.",
     )
     args = parser.parse_args()
 
     song_dir = resolve_song_dir(args.song)
-    config = ensure_song_config(song_dir)
+    preset = load_preset(args.preset)
+    config = apply_preset_to_config(ensure_song_config(song_dir), preset)
     errors, warnings = validate_song_package(song_dir, config)
     for warning in warnings:
         print(f"Warning: {warning}")
@@ -64,7 +73,8 @@ def main() -> int:
 
     configured_targets = config.get("output", {}).get("targets")
     targets = normalize_render_targets(args.targets if args.targets is not None else configured_targets)
-    ass_paths = [write_ass_file(song_dir, timing, config, target, args.layout) for target in targets]
+    layout = resolve_layout(args.layout, preset, config)
+    ass_paths = [write_ass_file(song_dir, timing, config, target, layout) for target in targets]
     print(f"{'Wrote' if timing_written else 'Using'} {timing_path}")
     for ass_path in ass_paths:
         print(f"Wrote {ass_path}")

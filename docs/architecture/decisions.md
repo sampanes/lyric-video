@@ -19,8 +19,8 @@ The goal is to keep implementation choices explicit and stable.
 - Visuals: one still background first, section-based swaps later
 - Output targets: `horizontal`, `vertical`, `square`, and `portrait`, with
   `horizontal` as the default
-- Lyric layouts: `standard` now, with `fullscreen`, `rolling`, and `karaoke`
-  documented as future modes
+- Lyric layouts: `standard`, `fullscreen`, and `soft_scroll` now, with
+  `rolling` and `karaoke` documented as future modes
 - BPM: optional user-provided metadata first, automatic estimation later
 - Script UX: separate validate, subtitle-build, asset-generate, and render
   scripts, with `make_videos.py` as the stable high-level entrypoint and

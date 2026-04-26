@@ -20,10 +20,18 @@ horizontal video while choosing a different layout.
 - Useful when the background is simple or when readability matters more than
   atmosphere.
 
+`soft_scroll`
+
+- Moves each lyric line gently upward with fade-in/fade-out.
+- Uses reviewed timing and authoritative lyrics.
+- Keeps the feel closer to readable lyric flow than novelty crawl text.
+- This is a first implementation, not final karaoke/word-level timing.
+
 Current helper:
 
 ```powershell
 python scripts\make_videos.py "song name" --force --targets horizontal --layout fullscreen
+python scripts\make_videos.py "song name" --force --targets horizontal --layout soft_scroll
 python scripts\render_vibe_video.py "song name" assets\backgrounds\clip.mp4 --layout fullscreen --variant vibe-fullscreen
 ```
 
@@ -37,16 +45,6 @@ python scripts\render_vibe_video.py "song name" assets\backgrounds\clip.mp4 --la
 - Should still render from reviewed timing and authoritative lyrics.
 - A first version can highlight the current line while showing previous and
   next lines at lower opacity.
-
-`soft_scroll`
-
-- Presents lyrics as a gentle vertical scroll with rounded/eased motion.
-- Fades text in at the bottom and out at the top using a soft mask.
-- Should feel like readable lyric flow, not a Star Wars crawl, perspective
-  tilt, or novelty title effect.
-- Can reduce hard cuts between lyric lines when timing is close but not perfect.
-- Should still use reviewed timing as the source of truth; the scroll path is a
-  presentation choice, not a timing source.
 
 `karaoke`
 
