@@ -40,6 +40,7 @@ python scripts\make_videos.py "song name" --refresh-whisper --targets all
 This delegates to the current basic pipeline and should:
 
 - resolve the song folder from an approximate name
+- create missing canonical song directories from the file contract
 - create missing config when possible
 - move newly discovered unique audio and lyric files into `inputs/audio/` and
   `inputs/lyrics/` when creating config

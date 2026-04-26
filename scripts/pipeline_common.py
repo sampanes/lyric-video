@@ -64,6 +64,24 @@ MANAGED_INPUT_SCAN_DIRS = {
     "subtitles",
     "timing",
 }
+REQUIRED_SONG_DIRECTORIES = (
+    "inputs/audio",
+    "inputs/lyrics",
+    "inputs/references",
+    "inputs/video",
+    "timing/raw/automation",
+    "timing/raw/imported",
+    "timing/raw/manual",
+    "timing/raw/whisper",
+    "timing/reviewed",
+    "timing/derived",
+    "subtitles",
+    "assets/backgrounds",
+    "assets/overlays",
+    "renders",
+    "exports",
+    "notes",
+)
 
 RENDER_TARGETS = {
     "horizontal": {
@@ -356,6 +374,15 @@ def song_relative(path: Path, song_dir: Path) -> str:
     return str(path.relative_to(song_dir)).replace("\\", "/")
 
 
+def missing_song_directories(song_dir: Path) -> list[Path]:
+    return [song_dir / directory for directory in REQUIRED_SONG_DIRECTORIES if not (song_dir / directory).is_dir()]
+
+
+def ensure_song_structure(song_dir: Path) -> None:
+    for directory in REQUIRED_SONG_DIRECTORIES:
+        (song_dir / directory).mkdir(parents=True, exist_ok=True)
+
+
 def ffmpeg_input_path(path: Path, cwd: Path) -> str:
     try:
         return str(path.resolve().relative_to(cwd.resolve())).replace("\\", "/")
@@ -441,6 +468,7 @@ def refresh_song_vibes_from_sources(song_dir: Path, config: dict) -> dict:
 
 
 def ensure_song_config(song_dir: Path) -> dict:
+    ensure_song_structure(song_dir)
     config_path = song_dir / "song.json"
     if config_path.exists():
         return refresh_song_vibes_from_sources(song_dir, load_json(config_path))
@@ -552,6 +580,10 @@ def normalize_match_text(value: str) -> str:
     return " ".join(re.findall(r"[a-z0-9']+", value.lower()))
 
 
+def normalize_match_words(value: str) -> list[str]:
+    return re.findall(r"[a-z0-9]+", value.lower())
+
+
 def find_whisper_transcript(song_dir: Path) -> Path:
     whisper_dir = song_dir / "timing" / "raw" / "whisper"
     candidates = [
@@ -583,6 +615,59 @@ def score_line_group_for_whisper(line_group: list[dict], whisper_segment: dict) 
     word_penalty = abs(group_words - whisper_words) / max(group_words, whisper_words)
     cost = (1.0 - similarity) * 0.8 + word_penalty * 0.2
     return cost, similarity
+
+
+def best_ordered_line_match(
+    line_text: str,
+    whisper_words: list[str],
+    cursor: int,
+) -> tuple[int, int, float] | None:
+    line_words = normalize_match_words(line_text)
+    if not line_words or cursor >= len(whisper_words):
+        return None
+
+    target = " ".join(line_words)
+    min_size = max(1, len(line_words) - 2)
+    max_size = min(len(whisper_words) - cursor, len(line_words) + 3)
+    if max_size < min_size:
+        return None
+
+    best: tuple[int, int, float] | None = None
+    for start in range(cursor, len(whisper_words)):
+        for size in range(min_size, max_size + 1):
+            end = start + size
+            if end > len(whisper_words):
+                continue
+            candidate = " ".join(whisper_words[start:end])
+            score = difflib.SequenceMatcher(None, target, candidate).ratio()
+            if best is None or score > best[2]:
+                best = (start, end, score)
+    return best
+
+
+def matched_line_indices_in_whisper(group_lines: list[dict], whisper_text: str) -> list[int]:
+    whisper_words = normalize_match_words(whisper_text)
+    cursor = 0
+    matched: list[int] = []
+
+    for index, line in enumerate(group_lines):
+        match = best_ordered_line_match(line["text"], whisper_words, cursor)
+        line_word_count = len(normalize_match_words(line["text"]))
+        threshold = 0.86 if line_word_count <= 3 else 0.72
+        if match is None or match[2] < threshold:
+            continue
+        matched.append(index)
+        cursor = match[1]
+
+    return matched
+
+
+def suffix_gap_start_index(group_lines: list[dict], whisper_text: str) -> int | None:
+    matched = matched_line_indices_in_whisper(group_lines, whisper_text)
+    if not matched:
+        return None
+    suffix_start = max(matched) + 1
+    return suffix_start if suffix_start < len(group_lines) else None
 
 
 def partition_lines_for_whisper(lines: list[dict], whisper_segments: list[dict]) -> list[tuple[int, int]]:
@@ -650,6 +735,41 @@ def allocate_lines_to_whisper_segments(lines: list[dict], whisper_segments: list
     return groups
 
 
+def weighted_timing_segments(
+    group_lines: list[dict],
+    start_ms: int,
+    end_ms: int,
+    *,
+    source_whisper_segment: int,
+    allocation_note: str | None = None,
+) -> list[dict]:
+    available_ms = max(1, end_ms - start_ms)
+    weights = [max(1, word_count(line["text"])) for line in group_lines]
+    total_weight = sum(weights)
+    cursor = start_ms
+    output_segments: list[dict] = []
+
+    for index, line in enumerate(group_lines):
+        if index == len(group_lines) - 1:
+            line_end = end_ms
+        else:
+            line_end = cursor + int(round(available_ms * (weights[index] / total_weight)))
+
+        segment = {
+            "id": line["id"],
+            "start_ms": cursor,
+            "end_ms": max(cursor + 250, line_end - 80),
+            "text": line["text"],
+            "source_whisper_segment": source_whisper_segment,
+        }
+        if allocation_note:
+            segment["allocation_note"] = allocation_note
+        output_segments.append(segment)
+        cursor = line_end
+
+    return output_segments
+
+
 def build_whisper_timing(song_dir: Path, config: dict) -> dict:
     lyrics_artifact = derive_clean_lyrics(song_dir, config)
     transcript_path = find_whisper_transcript(song_dir)
@@ -660,44 +780,64 @@ def build_whisper_timing(song_dir: Path, config: dict) -> dict:
 
     groups = allocate_lines_to_whisper_segments(lyrics_artifact["lines"], whisper_segments)
     derived_mapping_path = song_dir / "timing" / "derived" / "whisper_line_mapping.json"
+
+    output_segments: list[dict] = []
+    for group_index, group in enumerate(groups):
+        group_lines = group["lines"]
+        if not group_lines:
+            continue
+        start_ms = group["start_ms"]
+        end_ms = group["end_ms"]
+        next_start_ms = groups[group_index + 1]["start_ms"] if group_index + 1 < len(groups) else None
+        suffix_start = suffix_gap_start_index(group_lines, group["whisper_text"])
+        gap_ms = (next_start_ms - end_ms) if next_start_ms is not None else 0
+
+        if suffix_start and gap_ms >= 1200:
+            prefix_lines = group_lines[:suffix_start]
+            suffix_lines = group_lines[suffix_start:]
+            group["allocation"] = {
+                "strategy": "suffix_gap_allocation",
+                "suffix_line_ids": [line["id"] for line in suffix_lines],
+                "gap_start_ms": end_ms,
+                "gap_end_ms": next_start_ms,
+            }
+            output_segments.extend(
+                weighted_timing_segments(
+                    prefix_lines,
+                    start_ms,
+                    end_ms,
+                    source_whisper_segment=group["whisper_segment_index"],
+                )
+            )
+            output_segments.extend(
+                weighted_timing_segments(
+                    suffix_lines,
+                    end_ms,
+                    next_start_ms,
+                    source_whisper_segment=group["whisper_segment_index"],
+                    allocation_note="allocated_to_gap_after_whisper_segment",
+                )
+            )
+        else:
+            output_segments.extend(
+                weighted_timing_segments(
+                    group_lines,
+                    start_ms,
+                    end_ms,
+                    source_whisper_segment=group["whisper_segment_index"],
+                )
+            )
+
     write_json(
         derived_mapping_path,
         {
             "song_id": config["id"],
             "source_transcript": song_relative(transcript_path, song_dir),
             "source_lyrics": "timing/derived/lyrics_clean.json",
-            "strategy": "sequential_similarity_partition",
+            "strategy": "sequential_similarity_partition_with_suffix_gap_allocation",
             "groups": groups,
         },
     )
-
-    output_segments: list[dict] = []
-    for group in groups:
-        group_lines = group["lines"]
-        if not group_lines:
-            continue
-        start_ms = group["start_ms"]
-        end_ms = group["end_ms"]
-        available_ms = max(1, end_ms - start_ms)
-        weights = [max(1, word_count(line["text"])) for line in group_lines]
-        total_weight = sum(weights)
-        cursor = start_ms
-
-        for index, line in enumerate(group_lines):
-            if index == len(group_lines) - 1:
-                line_end = end_ms
-            else:
-                line_end = cursor + int(round(available_ms * (weights[index] / total_weight)))
-            output_segments.append(
-                {
-                    "id": line["id"],
-                    "start_ms": cursor,
-                    "end_ms": max(cursor + 250, line_end - 80),
-                    "text": line["text"],
-                    "source_whisper_segment": group["whisper_segment_index"],
-                }
-            )
-            cursor = line_end
 
     return {
         "song_id": config["id"],
@@ -1087,6 +1227,26 @@ def validate_timing(timing: dict, timing_path: Path) -> list[str]:
     return errors
 
 
+def timing_gap_warnings(timing: dict, timing_path: Path, threshold_ms: int = 5000) -> list[str]:
+    warnings: list[str] = []
+    segments = timing.get("segments")
+    if not isinstance(segments, list):
+        return warnings
+
+    for previous, current in zip(segments, segments[1:]):
+        previous_end = previous.get("end_ms")
+        current_start = current.get("start_ms")
+        if not isinstance(previous_end, int) or not isinstance(current_start, int):
+            continue
+        gap_ms = current_start - previous_end
+        if gap_ms > threshold_ms:
+            warnings.append(
+                f"{timing_path}: {gap_ms / 1000:.1f}s gap after "
+                f"{previous.get('id', '(unknown)')} before {current.get('id', '(unknown)')}"
+            )
+    return warnings
+
+
 def text_health_warnings(path: Path, label: str) -> list[str]:
     warnings: list[str] = []
     try:
@@ -1112,6 +1272,9 @@ def validate_song_package(
 
     if not song_dir.exists():
         errors.append(f"Song directory does not exist: {song_dir}")
+    else:
+        for directory in missing_song_directories(song_dir):
+            warnings.append(f"Recommended song directory is missing: {directory}")
 
     for key in ("id", "title", "audio", "lyrics"):
         if not config.get(key):
@@ -1159,6 +1322,7 @@ def validate_song_package(
             errors.append(f"Reviewed timing is invalid JSON: {timing_path}: {exc}")
         else:
             errors.extend(validate_timing(timing, timing_path))
+            warnings.extend(timing_gap_warnings(timing, timing_path))
     elif require_timing:
         errors.append(f"Reviewed timing file does not exist: {timing_path}")
 

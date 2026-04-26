@@ -30,6 +30,8 @@ If the song folder already contains source files:
   during lyric detection
 - move or normalize those files into the canonical `inputs/audio/` and
   `inputs/lyrics/` folders when possible
+- create canonical song-package directories from the file contract when the
+  pipeline touches a song
 - ask only when there is no clear unique match
 
 ## Default Behavior

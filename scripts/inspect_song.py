@@ -10,6 +10,7 @@ from pipeline_common import (
     LYRIC_EXTENSIONS,
     collect_candidates,
     load_json,
+    missing_song_directories,
     resolve_song_dir,
     song_vibes_files,
 )
@@ -63,6 +64,8 @@ def main() -> int:
     print_paths("Audio candidates", audio_candidates, song_dir)
     print_paths("Lyric candidates", lyric_candidates, song_dir)
     print_paths("Style prompt / vibe files", vibe_files, song_dir)
+    missing_dirs = missing_song_directories(song_dir)
+    print_paths("Missing recommended directories", missing_dirs, song_dir)
 
     timing_path = song_dir / "timing" / "reviewed" / "timing.json"
     exports = sorted((song_dir / "exports").glob("*.mp4")) if (song_dir / "exports").exists() else []
