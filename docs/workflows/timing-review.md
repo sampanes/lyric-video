@@ -100,6 +100,7 @@ The eventual GUI should make the same edits visually.
 Minimum useful timing GUI:
 
 - audio player with waveform or progress display
+- rough waveform packets or amplitude blocks from the source audio
 - reviewed lyric rows from `timing/reviewed/timing.json`
 - current playhead and active line highlight
 - draggable start/end handles per line
@@ -111,6 +112,10 @@ Minimum useful timing GUI:
 
 The GUI should write reviewed timing only. It should not mutate raw lyrics,
 Whisper output, or generated transcript artifacts.
+
+Timing review should be audio-first. Generated background video is not required
+for the user to correct lyric timing because the task is aligning words to
+sounds. Video proof renders come after timing edits.
 
 ## Why This Matters
 

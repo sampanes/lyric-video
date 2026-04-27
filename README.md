@@ -60,6 +60,8 @@ The important architectural choice is to keep:
 That keeps the repo flexible if the capture method changes later.
 
 Current defaults are recorded in `docs/architecture/decisions.md`.
+The product-level direction is recorded in
+`docs/roadmap/product-plan.md`.
 
 ---
 
@@ -163,8 +165,8 @@ That gives you a clean path for:
 
 The current CLI timing adjustment commands are a bridge, not the desired final
 user experience. The durable product direction is a GUI timing editor with
-audio playback, lyric rows, drag handles or sliders, range nudges, and proof
-rendering.
+audio playback, rough waveform packets, lyric rows, drag handles or sliders,
+range nudges, and proof rendering.
 
 Recommended timing file types:
 

@@ -70,12 +70,18 @@ These are useful additions that were not fully captured before:
 The first GUI that materially improves the product is a timing editor, not a
 full video editor.
 
+Timing review should be audio-first. The user is aligning words to sounds; the
+background video is irrelevant until proof render time. The GUI should load the
+song audio directly and show rough waveform packets or amplitude blocks as
+landmarks.
+
 The user should not need to type timestamp numbers for normal correction. CLI
 commands such as `scripts/timing_adjust.py nudge` and `fit` are useful
 transitional tools and a stable backend contract, but the long-term interaction
 should be visual:
 
 - play/pause the song
+- see rough waveform or amplitude landmarks
 - see the current lyric line highlighted
 - drag line starts and ends
 - select a verse or chorus and shift it earlier/later
@@ -141,6 +147,45 @@ A practical first GUI should stay small:
 
 Do not start with a full editor, NLE timeline, asset browser, and backend
 manager at once.
+
+## Stepper Navigation
+
+The GUI should be organized as tabs across the top with next/back arrows. The
+default path should feel like a production checklist:
+
+1. Song
+2. Lyrics
+3. Timing
+4. Sections
+5. Prompts
+6. Pictures
+7. Video Background
+8. Style
+9. Render
+10. Review
+
+The user can jump between tabs, but the UI should always show the next
+recommended step and whether the current step is missing, candidate, approved,
+or blocked.
+
+Visual generation should not be a single magic button. The user should first
+pick or approve prompts by section, then approve pictures, then choose which
+picture should become the video background source.
+
+The stepper should remain flexible. It is acceptable to add more steps or
+substeps when they make the workflow clearer. It should also be possible for
+presets or user choices to skip steps intentionally, such as skipping generated
+video backgrounds for a still-only render.
+
+Useful states for each step:
+
+- missing
+- candidate
+- needs review
+- approved
+- skipped
+- blocked
+- final
 
 ## Later GUI Panels
 

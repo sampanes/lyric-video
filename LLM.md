@@ -18,6 +18,11 @@ Build a reusable lyric-video pipeline that works from per-song inputs:
 The repo should stay generalized. Do not hardcode a single song into engine
 code.
 
+Use `docs/roadmap/product-plan.md` for product-level priorities. It defines the
+main sequence: scriptable proof, no-amnesia operator path, timing GUI MVP,
+approval/state layer, visual asset assistant, format presets, and later
+section-based visuals.
+
 ## Default Workflow
 
 When a user refers to a song by slug or name, for example
@@ -67,7 +72,8 @@ When a user refers to a song by slug or name, for example
   good enough, prefer reviewed timing edits over repeated mapper tweaks.
 - Do not frame hand-typed timestamp editing as the intended user workflow.
   `timing_adjust.py` is the current backend/bridge; the long-term interface is
-  a GUI timing editor with playback, lyric rows, drag handles, and backups.
+  an audio-first GUI timing editor with playback, rough waveform packets, lyric
+  rows, drag handles, and backups.
 - Preserve original inputs under `inputs/`.
 - Write cleaned lyric artifacts under `timing/derived/`.
 
