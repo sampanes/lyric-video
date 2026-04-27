@@ -4,8 +4,9 @@ This document defines the raw and reviewed timing model used by the pipeline.
 
 ## Purpose
 
-Timing should be captured as events first, then normalized into a render-ready
-file.
+Timing should keep raw evidence separate from the render-ready reviewed file.
+Raw evidence can come from automatic alignment, imported timestamps, or future
+human capture events.
 
 This keeps the repo open to:
 
@@ -15,7 +16,8 @@ This keeps the repo open to:
 - future alignment tools
 
 Automation output should be treated as draft timing. Human-reviewed timing is
-the version trusted by render scripts.
+the version trusted by render scripts. Human review should eventually happen in
+a GUI with playback and drag controls, not through hand-typed timestamp edits.
 
 ## Suggested Raw Event Shape
 
@@ -81,3 +83,7 @@ Useful operation types:
 The current CLI helper writes the reviewed timing directly and stores backups.
 A future GUI can record explicit operation logs if that becomes useful for undo,
 audit, or comparison.
+
+The CLI helper is a backend and transition path. The intended human interface is
+a timing editor where the same operations happen through audio playback, active
+lyric highlighting, draggable handles, and range controls.

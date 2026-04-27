@@ -1,7 +1,8 @@
 # Future GUI Roadmap
 
-This document captures the useful GUI and orchestration ideas from
-`gui_idea_spitballin.txt`.
+This document captures the durable GUI and orchestration plan for the repo.
+Temporary scratch notes should be absorbed here or deleted instead of tracked
+as source files.
 
 It is not a commitment to build a GUI next. The current priority remains the
 scriptable `make_videos.py` path plus cheap human timing review. The GUI should
@@ -63,6 +64,28 @@ These are useful additions that were not fully captured before:
   size, prompt delta, result path, and quick approval/rejection note.
 - Timing review should become a first-class interaction with audio playback,
   lyric rows, drag handles, range nudges, and reviewed-timing backups.
+
+## Timing Editor Priority
+
+The first GUI that materially improves the product is a timing editor, not a
+full video editor.
+
+The user should not need to type timestamp numbers for normal correction. CLI
+commands such as `scripts/timing_adjust.py nudge` and `fit` are useful
+transitional tools and a stable backend contract, but the long-term interaction
+should be visual:
+
+- play/pause the song
+- see the current lyric line highlighted
+- drag line starts and ends
+- select a verse or chorus and shift it earlier/later
+- pin a bad section between two anchors and let the tool distribute the lines
+- save reviewed timing with automatic backup
+- re-render a proof video from the same screen
+
+Live click-along capture can remain a later input mode. It is not the primary
+answer to timing correction because the normal correction task is "this section
+is early or late," not "manually perform the whole song again."
 
 ## Data Model Implications
 
@@ -156,7 +179,7 @@ Near-term scriptable foundation:
 
 1. Keep `make_videos.py`, `inspect_song.py`, `validate_song.py`, and
    `smoke_test.py` healthy.
-2. Add timing review helpers before trying to automate timing perfection.
+2. Keep timing review helpers stable as the backend for visual timing edits.
 3. Add a minimal timing review GUI around reviewed timing, audio playback, and
    safe backups.
 4. Add explicit approval/status files before building complex visual UI.

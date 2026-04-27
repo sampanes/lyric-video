@@ -11,7 +11,8 @@ The design goals are:
 - keep the code reusable
 - keep per-song inputs separate
 - render consistent outputs with FFmpeg
-- keep lyric timing capture open to both human clicking and future automation
+- keep lyric timing open to automated drafts, human review, and future capture
+  modes without making users type timestamp numbers
 - optionally generate background stills or simple visual assets from a sibling
   ComfyUI repo
 - support multiple aspect ratios and future lyric layout modes without changing
@@ -138,16 +139,17 @@ lyric-video-pipeline/
 
 ---
 
-## Timing Capture Strategy
+## Timing Review Strategy
 
-To leave room for live human clicking or later automation, store timing as
-events first, not just final subtitle files.
+To leave room for automation, imported timestamps, live human clicking, and
+future GUI correction, store raw timing evidence separately from reviewed
+render timing.
 
 Recommended timing flow:
 
-1. Capture a session as raw events, for example click timestamps or automation
-   events.
-2. Convert those events into a normalized timing file.
+1. Generate or import draft timing evidence, for example WhisperX output,
+   external timestamps, click timestamps, or automation events.
+2. Convert that evidence into a normalized timing file.
 3. Review or edit the normalized timing file.
 4. Generate ASS or another subtitle format from the reviewed timing data.
 5. Render from the reviewed output, not the raw capture.
@@ -158,6 +160,11 @@ That gives you a clean path for:
 - keyboard-triggered capture
 - automated capture from another tool
 - later reprocessing if the timing schema changes
+
+The current CLI timing adjustment commands are a bridge, not the desired final
+user experience. The durable product direction is a GUI timing editor with
+audio playback, lyric rows, drag handles or sliders, range nudges, and proof
+rendering.
 
 Recommended timing file types:
 
@@ -248,9 +255,9 @@ Core tools:
 
 Timing capture tools:
 
-- a small local capture UI, likely browser-based or desktop-based
+- a small local timing review UI, likely browser-based or desktop-based
 - a simple event schema for clicks and automation output
-- optional hotkey support if you want faster manual capture
+- optional hotkey support if you want faster capture
 - Whisper or WhisperX transcription assist for rough text and timestamps
 
 ComfyUI tools:
@@ -283,7 +290,8 @@ This repo should avoid:
 
 - hardcoding one song into the engine
 - burying song assets inside scripts
-- relying on manual clicking for core rendering steps
+- relying on manual clicking or hand-typed timestamp editing for core rendering
+  steps
 - tying the whole system to a single background-generation method
 
 Whisper-based rough transcription should be treated as a helper input, not the
@@ -294,7 +302,7 @@ final lyric source or final timing authority.
 ## Suggested Workflow
 
 1. Put song-specific input files in a dedicated song folder.
-2. Capture or import lyric timing data.
+2. Generate or import draft lyric timing data.
 3. Review and normalize the timing data.
 4. Generate subtitle files, typically ASS.
 5. Prepare visual assets such as still backgrounds, loops, or overlays.
@@ -412,7 +420,8 @@ one term per line.
 
 3. Capture and automation foundation
 
-   - add a minimal timing capture prototype
-   - support human click timing first
-   - keep the schema open for automation later
+   - keep draft timing automation working
+   - make reviewed timing cheap to correct without hand-typed timestamps
+   - add a minimal GUI timing editor around playback, lyric rows, and backups
+   - keep live click timing available as a later optional capture mode
    - add a small ComfyUI adapter stub for background generation

@@ -11,7 +11,8 @@ The goal is to keep implementation choices explicit and stable.
 - Template song: `songs/template_song/`
 - Timing model: raw capture first, reviewed timing second, derived subtitles last
 - Subtitle format: `ASS`
-- Timing capture: human click timing first, automation later
+- Timing capture: automation-assisted draft timing first, GUI-assisted reviewed
+  timing next, live click capture later as an optional input mode
 - Transcription assist: Whisper/WhisperX as optional rough transcription and
   timestamp capture, not the final lyrics source
 - Original inputs: preserve raw user-provided audio, lyrics, and vibe text;
@@ -30,6 +31,24 @@ The goal is to keep implementation choices explicit and stable.
 - Future GUI: orchestration, review, approval, and status layer over scripts;
   not a replacement for the scriptable pipeline
 
+## Scope Boundary
+
+This repo is the lyric-video pipeline. It should not become the master project
+for local song generation, voice conversion, DAW workflows, model inventories,
+or AI-audio experiments.
+
+Those systems can feed this repo through stable artifacts:
+
+- final or draft audio files under `inputs/audio/`
+- optional vocal or instrumental stems under future song-local input folders
+- authoritative user lyrics under `inputs/lyrics/`
+- timing evidence under `timing/raw/`
+- approved visual assets under `assets/backgrounds/`
+
+If a separate AI-audio lab or notes repo exists, it should own model install
+notes, launch recipes, voice-conversion experiments, and heavy storage maps.
+This repo should own the repeatable path from song package to lyric video.
+
 ## What This Means In Practice
 
 ### Config
@@ -47,19 +66,22 @@ That file should describe:
 
 ### Timing
 
-Timing starts as raw events and becomes reviewed timing before rendering.
+Timing starts as draft evidence and becomes reviewed timing before rendering.
 
 This supports:
 
-- manual live clicking
-- keyboard capture
-- future automation
+- Whisper/WhisperX or future known-lyrics alignment
+- imported timestamps
+- future keyboard or click capture
+- GUI-assisted correction
 
 The reviewed timing file is the thing we trust for rendering.
 
 Human timing review is not a workaround; it is part of the expected workflow for
 music. Automation should produce a useful draft, then repo-owned tools should
-make small corrections cheap.
+make small corrections cheap. The long-term correction surface should be a GUI
+with playback, lyric rows, sliders or drag handles, range nudges, and safe
+backups. Normal users should not need to type timestamp numbers.
 
 ### Transcription Assist
 

@@ -65,6 +65,9 @@ When a user refers to a song by slug or name, for example
 - Keep raw timing separate from reviewed timing.
 - Treat Whisper timing as a draft for sung audio. When timing is close but not
   good enough, prefer reviewed timing edits over repeated mapper tweaks.
+- Do not frame hand-typed timestamp editing as the intended user workflow.
+  `timing_adjust.py` is the current backend/bridge; the long-term interface is
+  a GUI timing editor with playback, lyric rows, drag handles, and backups.
 - Preserve original inputs under `inputs/`.
 - Write cleaned lyric artifacts under `timing/derived/`.
 
@@ -97,6 +100,13 @@ truth for:
 - file pairings
 - render metadata
 - workflow assumptions
+
+## Scope Boundary
+
+Keep this repo focused on lyric-video production. Do not expand it into a
+general AI-audio lab, model inventory, voice-conversion project, or DAW notes
+repo. Those tools can produce audio, stems, or timing evidence that this repo
+imports, but this repo should own the path from song package to lyric video.
 
 ## ComfyUI Rules
 
