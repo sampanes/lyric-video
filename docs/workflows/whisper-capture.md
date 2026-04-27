@@ -10,6 +10,7 @@ timestamps.
 
 The useful output is not the raw transcript itself. The useful output is the
 reviewed alignment after the transcript is compared against the real lyrics.
+For sung audio, expect that reviewed alignment to need human timing edits.
 
 ## Current Local Setup
 
@@ -42,6 +43,8 @@ $env:WHISPERX_EXE = "path\to\whisper-env\Scripts\whisperx.exe"
    `songs/<song>/timing/reviewed/`.
 7. Generate ASS subtitles from the reviewed timing.
 8. Render the final video.
+9. Watch the proof video and adjust reviewed timing when sections feel early,
+   late, blank, or shifted.
 
 The current one-shot version of that workflow is:
 
@@ -53,6 +56,13 @@ That command preserves the raw audio and raw lyric file, writes WhisperX output
 under `timing/raw/whisper/`, writes cleaned lyric artifacts under
 `timing/derived/`, writes merged timing under `timing/reviewed/`, and renders
 the MP4 under `exports/`.
+
+When the timing draft is close but not final, use:
+
+```powershell
+python scripts\timing_adjust.py report "man behind the bar" --around "unique lyric text"
+python scripts\timing_adjust.py nudge "man behind the bar" --from line_020 --to line_026 --shift +0.35s
+```
 
 ## Merge Strategy
 
@@ -82,6 +92,8 @@ Reasonable outputs from the merge step:
   repo docs or scripts.
 - WhisperX does not have a dedicated music mode in the local CLI. Start with
   English transcription plus an initial prompt derived from the written lyrics.
+- Do not overfit Whisper alignment when a section needs an editorial timing
+  adjustment.
 - Preserve the raw user files. Put cleaned lyric artifacts under
   `timing/derived/`.
 

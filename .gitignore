@@ -24,8 +24,10 @@ Thumbs.db
 .env.*
 LOCAL_PATHS.md
 LOCAL_PRIVACY_TERMS.txt
+LOCAL_CONFIG.json
 SECRETS.md
 LLM_DUMP.md
+spitballin-*.txt
 
 # Keep a tracked template song later, but ignore production song workspaces by default.
 songs/*

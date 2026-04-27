@@ -14,6 +14,9 @@ This keeps the repo open to:
 - automation output
 - future alignment tools
 
+Automation output should be treated as draft timing. Human-reviewed timing is
+the version trusted by render scripts.
+
 ## Suggested Raw Event Shape
 
 Raw capture should preserve what happened as directly as possible.
@@ -60,3 +63,21 @@ Example:
 - Reviewed timing is the render source of truth.
 - The reviewed file should be stable enough to regenerate subtitles.
 - Keep file names and segment ids stable across revisions when possible.
+- Timing review edits should preserve the original raw capture artifact.
+- Timing edit tools should back up the reviewed timing file before writing.
+
+## Review Operations
+
+Human review can be represented as direct edits to reviewed timing or as future
+operation logs.
+
+Useful operation types:
+
+- `nudge_range`: shift one or more lyric segments earlier or later
+- `fit_range`: stretch or compress a lyric range between two anchor times
+- `set_start`: set one segment start from the current playhead
+- `set_end`: set one segment end from the current playhead
+
+The current CLI helper writes the reviewed timing directly and stores backups.
+A future GUI can record explicit operation logs if that becomes useful for undo,
+audit, or comparison.

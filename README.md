@@ -208,14 +208,30 @@ This makes it possible to:
   `python scripts\make_videos.py "man behind the bar" --refresh-whisper`.
 - Multi-aspect output is available with
   `python scripts\make_videos.py "man behind the bar" --targets all`.
+- Machine-readable song status is available with
+  `python scripts\inspect_song.py "man behind the bar" --json`.
+- A self-service operator checklist is available with
+  `python scripts\guide_song.py "man behind the bar"` or `--json`.
 - A gentle scrolling lyric display is available with
   `python scripts\make_videos.py "man behind the bar" --layout soft_scroll`.
 - Repeatable output habits are captured as presets, for example
   `python scripts\make_videos.py "man behind the bar" --preset kid_youtube_education`.
+- A self-service, no-LLM-required song checklist lives in
+  [SECOND_SONG_HANDHOLD.md](SECOND_SONG_HANDHOLD.md).
 - A synthetic end-to-end smoke test is available with
   `python scripts\smoke_test.py`.
 - A pre-push privacy scan is available with
   `python scripts\privacy_check.py --include-untracked`.
+- The pre-GUI ComfyUI headless proof starts with
+  `python scripts\comfyui_queue.py workflows\comfyui\node-graphs\basic_flux_t2i.api.json --song "man behind the bar" --dry-run`.
+- ComfyUI background generation should run still image first, then
+  a tiny image-to-video probe from the approved still. `832x480` remains a
+  valid baseline size; the probe isolates prompt/source/runtime issues before
+  spending a long Wan run.
+- ComfyUI should be treated as a local API server, not a UI-clicking workflow.
+  Check it with `python scripts\comfyui_server.py status` and start it with
+  `python scripts\comfyui_server.py start` after setting `COMFYUI_ROOT` or
+  ignored `LOCAL_CONFIG.json`.
 
 ---
 
@@ -271,7 +287,7 @@ This repo should avoid:
 - tying the whole system to a single background-generation method
 
 Whisper-based rough transcription should be treated as a helper input, not the
-final lyric source.
+final lyric source or final timing authority.
 
 ---
 
@@ -306,6 +322,17 @@ python scripts\make_videos.py "approximate song name" --refresh-whisper
 Use this when the song folder already has one audio file and one raw lyric file.
 It runs WhisperX as a rough timing assist, keeps the written lyrics as the
 authoritative text, and renders a basic MP4.
+
+When timing is close but not good enough, adjust reviewed timing instead of
+editing JSON by hand:
+
+```powershell
+python scripts\timing_adjust.py report "approximate song name" --around "unique lyric text"
+python scripts\timing_adjust.py nudge "approximate song name" --from line_020 --to line_026 --shift +0.35s
+python scripts\timing_adjust.py fit "approximate song name" --from line_020 --to line_026 --start-at 0:37.900 --end-at 0:47.800
+```
+
+Timing review is documented in `docs/workflows/timing-review.md`.
 
 For platform-specific exports:
 

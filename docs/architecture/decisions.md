@@ -57,6 +57,10 @@ This supports:
 
 The reviewed timing file is the thing we trust for rendering.
 
+Human timing review is not a workaround; it is part of the expected workflow for
+music. Automation should produce a useful draft, then repo-owned tools should
+make small corrections cheap.
+
 ### Transcription Assist
 
 Whisper and WhisperX can be used to generate a rough transcript with
@@ -88,6 +92,9 @@ setup reproducible.
 There is no dedicated music mode exposed by the current WhisperX CLI. For songs,
 use the written lyrics as an initial prompt and expect the transcript to need a
 merge/review pass.
+
+When a rendered proof is close but still feels wrong, shift or fit reviewed
+timing ranges rather than continuing to overfit transcription alignment.
 
 ### Visuals
 

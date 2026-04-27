@@ -63,6 +63,8 @@ When a user refers to a song by slug or name, for example
 - Treat Whisper or WhisperX output as a helper input, not the final lyric text.
 - Use raw transcript output as a head start for review and alignment.
 - Keep raw timing separate from reviewed timing.
+- Treat Whisper timing as a draft for sung audio. When timing is close but not
+  good enough, prefer reviewed timing edits over repeated mapper tweaks.
 - Preserve original inputs under `inputs/`.
 - Write cleaned lyric artifacts under `timing/derived/`.
 
@@ -103,6 +105,12 @@ ComfyUI is optional.
 Use it as an adapter for background stills or simple assets, not as the core
 renderer.
 
+Routine ComfyUI use should be command-driven through the local API server. Do
+not require the user to click around the ComfyUI browser UI for normal
+generation. Use `scripts\comfyui_server.py` to check/start the server and
+`scripts\comfyui_queue.py` to queue exported API workflow JSON. Machine-local
+ComfyUI paths may live in ignored `LOCAL_CONFIG.json`.
+
 When the user provides a ComfyUI workflow exported from the UI, put durable
 copies under `workflows/comfyui/node-graphs/` and document which node fields are
 song-driven. See `docs/workflows/comfyui-vibe-motion.md` for the background
@@ -129,6 +137,12 @@ For future image-generation prompts, use `song_vibes` plus the raw user-editable
 - Validate inputs early.
 - Preserve reproducibility in outputs and metadata.
 - When in doubt, favor the simplest path that supports the real song data.
+- Do not describe a repeatable workflow as "the LLM did it." If an agent runs a
+  step, document the command, file operation, or script path a human can use
+  without an LLM.
+- For machine-readable state, prefer `inspect_song.py --json` and
+  `guide_song.py --json`. Do not build GUI assumptions by scraping
+  human-readable terminal output.
 
 ## What To Do On a Song Task
 
@@ -165,6 +179,18 @@ under `timing/raw/whisper/`, writes machine-cleaned lyric artifacts under
 `timing/derived/`, writes merged timing under `timing/reviewed/`, and renders a
 basic MP4 under `exports/`.
 
+If the user reports that a section is early, late, blank, or shifted after the
+Whisper-assisted pass, use the timing review helper before editing JSON:
+
+```powershell
+python scripts\timing_adjust.py report "approximate song name" --around "unique lyric text"
+python scripts\timing_adjust.py nudge "approximate song name" --from line_020 --to line_026 --shift +0.35s
+python scripts\timing_adjust.py fit "approximate song name" --from line_020 --to line_026 --start-at 0:37.900 --end-at 0:47.800
+```
+
+Use `--dry-run` first when the edit is uncertain. Each write backs up the
+previous reviewed timing under `timing/reviewed/backups/`.
+
 For multi-aspect output, add render targets:
 
 ```powershell
@@ -198,6 +224,22 @@ Preset defaults are render-time only. CLI flags override presets, presets
 override matching render defaults from `song.json`, and `song.json` still owns
 song-specific identity and file paths.
 
+Before GUI work, prove the ComfyUI background path headlessly:
+
+```powershell
+python scripts\comfyui_queue.py workflows\comfyui\node-graphs\basic_flux_t2i.api.json --song "approximate song name" --dry-run
+```
+
+Normal order is still image first, then image-to-video from the approved still.
+Using an existing still image is acceptable for a queue-path test only. For the
+first I2V attempt, use tiny probe settings such as `--length 9` and
+`--set "3.inputs.steps=4"` with a song-specific positive prompt. Do not treat
+`832x480` as bad by default; it has worked before. The probe is for isolating
+prompt/source/runtime problems before spending a full Wan run.
+
+Only run without `--dry-run` when a local ComfyUI server is running and the
+workflow's source image/model requirements are satisfied.
+
 For repo health checks without a real song, run:
 
 ```powershell
@@ -214,6 +256,8 @@ To inspect a song folder without changing it, run:
 
 ```powershell
 python scripts\inspect_song.py "approximate song name"
+python scripts\inspect_song.py "approximate song name" --json
+python scripts\guide_song.py "approximate song name"
 ```
 
 For read-only validation after a song has config, run:

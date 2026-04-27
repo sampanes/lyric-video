@@ -14,6 +14,8 @@ It can help produce:
 - candidate alignment data for later review
 
 It is not the source of truth for lyrics.
+It is also not expected to be final timing for sung audio. Treat it as a
+head-start artifact that needs human timing review.
 
 ## Intended Use
 
@@ -21,6 +23,7 @@ Use transcription output in one of two ways:
 
 1. As a head start when entering lyrics manually.
 2. As an alignment aid when reconciling generated text with actual lyrics.
+3. As a draft timing source before human review edits.
 
 ## Recommended Artifact Shape
 
@@ -57,5 +60,7 @@ Whisper segment. It is a review/debug artifact, not the final render source.
 - Use the same base filename when pairing transcript, timing, and review data.
 - Whisper output can be wrong on sung audio and unusual words. Use actual lyrics
   as the authoritative text when merging.
+- When a section feels early, late, blank, or compressed, prefer reviewed timing
+  adjustment over repeatedly tuning transcription settings.
 - Render from `timing/reviewed/timing.json`, not directly from raw Whisper
   output or the derived mapping file.

@@ -126,6 +126,11 @@ exports/song-name.horizontal.soft_scroll.mp4
 The source lyric file is authoritative. Whisper/WhisperX output is evidence,
 not rendered text.
 
+Whisper timing should be treated as a draft. For sung audio, the expected
+workflow is to generate a rough first pass, review it by listening, then make
+small human corrections to `timing/reviewed/timing.json`. Do not treat bad
+Whisper alignment as a reason to keep rewriting the mapper indefinitely.
+
 Current automated timing choices:
 
 - `--timing-source even`: distribute lyric lines evenly across the song
@@ -138,6 +143,17 @@ Future improvements should still write final timing to:
 ```text
 songs/<song>/timing/reviewed/timing.json
 ```
+
+Use the timing review helper when the draft is close but not correct:
+
+```powershell
+python scripts\timing_adjust.py report "approximate song name" --around "unique lyric text"
+python scripts\timing_adjust.py nudge "approximate song name" --from line_020 --to line_026 --shift +0.35s
+python scripts\timing_adjust.py fit "approximate song name" --from line_020 --to line_026 --start-at 0:37.900 --end-at 0:47.800
+```
+
+Detailed timing review notes live in
+[Timing Review Workflow](./timing-review.md).
 
 ## Background Responsibility
 
@@ -163,6 +179,10 @@ exists only for ad hoc external files that already exist somewhere else.
   only when config creation is intentional.
 - `inspect_song.py`: read-only status command that reports detected inputs,
   timing, subtitles, exports, and the next likely command.
+- `inspect_song.py --json`: machine-readable song status for future GUI and
+  automation.
+- `guide_song.py`: self-service operator checklist; `--json` emits the same
+  checklist as structured data.
 - `smoke_test.py`: creates a temporary ignored synthetic song, renders it, runs
   validation, and deletes it unless `--keep` is passed.
 - `whisper_song.py`: standalone WhisperX capture when transcription output
@@ -172,6 +192,10 @@ exists only for ad hoc external files that already exist somewhere else.
 - `make_bounce_loop.py`: converts a short subtle clip into a palindrome loop.
 - `import_media.py`: optional one-off importer for already-generated external
   media; not the planned normal ComfyUI path.
+- `comfyui_queue.py`: generic headless ComfyUI API queue/download helper for
+  pre-GUI background-generation proof work.
+- `timing_adjust.py`: reports, nudges, or fits reviewed timing ranges while
+  preserving backups.
 
 ## Readiness Test For A New Song
 
@@ -221,8 +245,8 @@ Still missing or intentionally rough:
 - Candidate/approved/final artifact states are not yet modeled.
 - Section-level visual planning is not yet modeled.
 - Safe-crop previews and subtitle proof frames are not yet generated.
-- Whisper-to-real-lyrics alignment is automated only as a rough first pass.
-- Timing review still happens by inspecting/editing `timing/reviewed/timing.json`.
+- Whisper-to-real-lyrics alignment is intentionally a rough first pass.
+- Timing review still happens through CLI helpers and proof renders, not a GUI.
 - Human click timing remains a future capture mode, not the default path.
 
 None of those block a basic draft lyric video from a new song folder.

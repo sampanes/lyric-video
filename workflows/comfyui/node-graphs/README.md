@@ -17,3 +17,12 @@ Current baseline workflows:
   should be treated as a baseline to iterate from, not a final best workflow.
   The prior `*-2` attempt is documented as a failed/trash visual result in
   `docs/workflows/comfyui-vibe-motion.md`.
+
+Dry-run a workflow through the headless queue helper:
+
+```powershell
+python scripts\comfyui_queue.py workflows\comfyui\node-graphs\basic_flux_t2i.api.json --song "song name" --dry-run
+```
+
+Normal order is text-to-image still first, then image-to-video from an approved
+still.
