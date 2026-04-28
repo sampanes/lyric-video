@@ -82,6 +82,10 @@ songs/<song>/timing/reviewed/timing.json
 Backups are previous snapshots only. Reopening the GUI or rendering a proof
 loads the current `timing.json`, not an older backup.
 
+The review UI tracks unsaved changes. It warns before song switches or tab
+close, and it prompts the user to save before proof rendering because proof
+renders read the saved `timing.json` from disk.
+
 After a write, re-render from reviewed timing:
 
 ```powershell

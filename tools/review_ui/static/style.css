@@ -53,6 +53,10 @@ button.primary {
   font-weight: 800;
 }
 
+button.dirty {
+  box-shadow: 0 0 0 3px rgba(241, 184, 75, 0.18);
+}
+
 input,
 select {
   color: var(--ink);

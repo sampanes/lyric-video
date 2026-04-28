@@ -7,6 +7,7 @@ const state = {
   duration: 0,
   dragging: null,
   zoomWindow: null,
+  dirty: false,
 };
 
 const els = {
@@ -63,6 +64,29 @@ function setJobLog(message) {
   els.jobLog.textContent = message || "";
 }
 
+function updateDirtyState() {
+  els.saveTiming.textContent = state.dirty ? "Save Reviewed Timing *" : "Save Reviewed Timing";
+  els.saveTiming.classList.toggle("dirty", state.dirty);
+}
+
+function markDirty() {
+  if (!state.dirty) {
+    state.dirty = true;
+    setStatus("Unsaved timing changes.");
+  }
+  updateDirtyState();
+}
+
+function markClean() {
+  state.dirty = false;
+  updateDirtyState();
+}
+
+function confirmDiscardUnsaved() {
+  if (!state.dirty) return true;
+  return window.confirm("You have unsaved timing changes. Discard them and load another song?");
+}
+
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, options);
   const text = await response.text();
@@ -113,6 +137,7 @@ async function loadSong(songRef) {
   const timingData = await fetchJson(inspection.review_ui.timing_url);
   state.timing = timingData.timing;
   state.selectedIndex = 0;
+  markClean();
   els.audio.src = inspection.review_ui.audio_url;
   els.audio.load();
   await decodeWaveform(inspection.review_ui.audio_url);
@@ -398,6 +423,7 @@ function setSegmentTime(kind, ms) {
   } else {
     selected.end_ms = Math.max(selected.start_ms + 50, ms);
   }
+  markDirty();
   renderAll();
 }
 
@@ -406,6 +432,7 @@ function nudgeSelected(deltaMs) {
   if (!selected) return;
   selected.start_ms = Math.max(0, selected.start_ms + deltaMs);
   selected.end_ms = Math.max(selected.start_ms + 50, selected.end_ms + deltaMs);
+  markDirty();
   renderAll();
 }
 
@@ -507,6 +534,10 @@ document.querySelectorAll("[data-nudge-end]").forEach((button) => {
 });
 
 els.saveTiming.addEventListener("click", async () => {
+  await saveCurrentTiming();
+});
+
+async function saveCurrentTiming() {
   if (!state.song || !state.timing) return;
   try {
     setStatus("Saving...");
@@ -515,14 +546,24 @@ els.saveTiming.addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ timing: state.timing }),
     });
+    markClean();
     setStatus(`Saved current timing.json. Previous version backed up: ${data.backup || "none"}`);
   } catch (error) {
     setStatus(`Save failed: ${error.message}`);
   }
-});
+}
 
 els.renderProof.addEventListener("click", async () => {
   if (!state.song) return;
+  if (state.dirty) {
+    const shouldSave = window.confirm("Proof render uses saved timing.json. Save current timing changes first?");
+    if (!shouldSave) {
+      setStatus("Proof render skipped until timing is saved.");
+      return;
+    }
+    await saveCurrentTiming();
+    if (state.dirty) return;
+  }
   try {
     setStatus("Rendering proof...");
     setJobLog("");
@@ -540,6 +581,7 @@ els.renderProof.addEventListener("click", async () => {
 });
 
 els.loadSong.addEventListener("click", () => {
+  if (!confirmDiscardUnsaved()) return;
   const typed = els.songInput.value.trim();
   const selected = els.songSelect.value;
   loadSong(typed || selected).catch((error) => setStatus(`Load failed: ${error.message}`));
@@ -575,6 +617,11 @@ window.addEventListener("keydown", (event) => {
 
 window.addEventListener("resize", drawWaveform);
 window.addEventListener("resize", drawZoomWaveform);
+window.addEventListener("beforeunload", (event) => {
+  if (!state.dirty) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
 
 loadSongs()
   .then(() => {

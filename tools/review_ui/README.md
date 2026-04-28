@@ -29,6 +29,10 @@ Save behavior:
 - before overwrite, the previous version is copied into
   `timing/reviewed/backups/`
 - reopening the UI loads `timing/reviewed/timing.json`, not an older backup
+- unsaved edits mark the save button with `*`
+- switching songs or closing the tab warns when timing edits are unsaved
+- proof render prompts to save first because renders read the saved
+  `timing.json`
 
 This is intentionally not a full GUI yet. It is the command-launched timing
 review foundation.
