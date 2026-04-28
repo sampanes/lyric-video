@@ -6,6 +6,7 @@ const state = {
   peaks: [],
   duration: 0,
   dragging: null,
+  zoomWindow: null,
 };
 
 const els = {
@@ -96,9 +97,13 @@ function querySong() {
 async function loadSong(songRef) {
   if (!songRef) return;
   setStatus("Loading song...");
-  state.song = songRef;
   const inspection = await fetchJson(`/api/song?song=${encodeURIComponent(songRef)}`);
   state.inspection = inspection;
+  state.song = inspection.song_dir_name || songRef;
+  els.songInput.value = state.song;
+  if ([...els.songSelect.options].some((option) => option.value === state.song)) {
+    els.songSelect.value = state.song;
+  }
   renderSongState();
 
   if (!inspection.review_ui) {
@@ -129,7 +134,7 @@ function renderSongState() {
     `Title: ${cfg.title || "(missing)"}`,
     `Audio: ${cfg.audio || "(missing)"}`,
     `Lyrics: ${cfg.lyrics || "(missing)"}`,
-    `Timing: ${timing.present ? timing.path : "(missing)"}`,
+    `Current working timing: ${timing.present ? timing.path : "(missing)"}`,
     `Segments: ${timing.segment_count || 0}`,
     `Exports: ${(info.exports || []).length}`,
   ];
@@ -227,6 +232,7 @@ function timeToX(seconds, width) {
 }
 
 function selectedZoomWindow() {
+  if (state.zoomWindow) return state.zoomWindow;
   const selected = selectedSegment();
   const duration = Math.max(state.duration, els.audio.duration || 0, 1);
   if (!selected) return { start: 0, end: Math.min(duration, 10) };
@@ -426,6 +432,7 @@ els.waveform.addEventListener("mousedown", (event) => {
 els.zoomWaveform.addEventListener("mousedown", (event) => {
   const handle = nearestHandle(event, true);
   if (handle) {
+    state.zoomWindow = selectedZoomWindow();
     state.dragging = `zoom:${handle}`;
     return;
   }
@@ -445,11 +452,18 @@ window.addEventListener("mousemove", (event) => {
 
 window.addEventListener("mouseup", () => {
   state.dragging = null;
+  state.zoomWindow = null;
+  drawZoomWaveform();
 });
 
 els.audio.addEventListener("timeupdate", () => {
   els.clock.textContent = fmt(currentMs());
-  const index = segments().findIndex((segment) => currentMs() >= segment.start_ms && currentMs() <= segment.end_ms);
+  const selected = selectedSegment();
+  const selectedContainsPlayhead =
+    selected && currentMs() >= selected.start_ms && currentMs() <= selected.end_ms;
+  const index = selectedContainsPlayhead
+    ? state.selectedIndex
+    : segments().findIndex((segment) => currentMs() >= segment.start_ms && currentMs() <= segment.end_ms);
   if (index >= 0 && index !== state.selectedIndex && !state.dragging) {
     state.selectedIndex = index;
     renderLineList();
@@ -501,7 +515,7 @@ els.saveTiming.addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ timing: state.timing }),
     });
-    setStatus(`Saved. Backup: ${data.backup || "none"}`);
+    setStatus(`Saved current timing.json. Previous version backed up: ${data.backup || "none"}`);
   } catch (error) {
     setStatus(`Save failed: ${error.message}`);
   }
@@ -529,6 +543,10 @@ els.loadSong.addEventListener("click", () => {
   const typed = els.songInput.value.trim();
   const selected = els.songSelect.value;
   loadSong(typed || selected).catch((error) => setStatus(`Load failed: ${error.message}`));
+});
+
+els.songSelect.addEventListener("change", () => {
+  els.songInput.value = els.songSelect.value;
 });
 
 window.addEventListener("keydown", (event) => {
@@ -562,7 +580,6 @@ loadSongs()
   .then(() => {
     const initial = querySong();
     if (initial) {
-      els.songInput.value = initial;
       return loadSong(initial);
     }
     if (els.songSelect.value) {

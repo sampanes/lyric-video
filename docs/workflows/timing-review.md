@@ -73,6 +73,15 @@ Every write creates a backup under:
 songs/<song>/timing/reviewed/backups/
 ```
 
+The current working draft remains:
+
+```text
+songs/<song>/timing/reviewed/timing.json
+```
+
+Backups are previous snapshots only. Reopening the GUI or rendering a proof
+loads the current `timing.json`, not an older backup.
+
 After a write, re-render from reviewed timing:
 
 ```powershell

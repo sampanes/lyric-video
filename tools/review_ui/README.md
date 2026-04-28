@@ -22,5 +22,13 @@ Current scope:
 - saves reviewed timing with a backup
 - can run a proof render through `scripts/render_song.py`
 
+Save behavior:
+
+- the current working file is always `timing/reviewed/timing.json`
+- each save overwrites that current working file
+- before overwrite, the previous version is copied into
+  `timing/reviewed/backups/`
+- reopening the UI loads `timing/reviewed/timing.json`, not an older backup
+
 This is intentionally not a full GUI yet. It is the command-launched timing
 review foundation.

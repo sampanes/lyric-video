@@ -28,6 +28,7 @@ LOCAL_CONFIG.json
 SECRETS.md
 LLM_DUMP.md
 spitballin-*.txt
+ui_scribbles.txt
 delete_no_track_examples/
 
 # Keep a tracked template song later, but ignore production song workspaces by default.
