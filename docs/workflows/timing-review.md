@@ -101,11 +101,13 @@ Minimum useful timing GUI:
 
 - audio player with waveform or progress display
 - rough waveform packets or amplitude blocks from the source audio
+- zoomed selected-line waveform for fine edits
 - reviewed lyric rows from `timing/reviewed/timing.json`
 - current playhead and active line highlight
 - draggable start/end handles per line
 - range selection for verse/chorus chunks
 - nudge buttons for earlier/later by small increments
+- separate start-only and end-only nudge controls for fine tuning
 - keyboard shortcuts for play, pause, mark start, mark end, and advance line
 - save button that backs up the previous reviewed timing
 - proof render button that calls the existing scripts
@@ -125,8 +127,9 @@ python scripts\launch_review_ui.py --song "song name"
 
 The current GUI is intentionally narrow. It loads song state from the repo,
 serves the configured audio file, displays rough browser-decoded waveform
-packets, lets the user adjust reviewed timing, saves with a backup, and can run
-a horizontal soft-scroll proof render.
+packets, adds a zoomed selected-line waveform for fine edits, lets the user
+adjust reviewed timing, saves with a backup, and can run a horizontal
+soft-scroll proof render.
 
 ## Why This Matters
 

@@ -18,6 +18,7 @@ const els = {
   playPause: document.getElementById("playPause"),
   clock: document.getElementById("clock"),
   waveform: document.getElementById("waveform"),
+  zoomWaveform: document.getElementById("zoomWaveform"),
   focusText: document.getElementById("focusText"),
   focusTimes: document.getElementById("focusTimes"),
   prevLine: document.getElementById("prevLine"),
@@ -174,6 +175,7 @@ function renderAll() {
   renderLineList();
   renderFocus();
   drawWaveform();
+  drawZoomWaveform();
 }
 
 function selectIndex(index, seek = false) {
@@ -224,6 +226,50 @@ function timeToX(seconds, width) {
   return (seconds / duration) * width;
 }
 
+function selectedZoomWindow() {
+  const selected = selectedSegment();
+  const duration = Math.max(state.duration, els.audio.duration || 0, 1);
+  if (!selected) return { start: 0, end: Math.min(duration, 10) };
+  const start = selected.start_ms / 1000;
+  const end = selected.end_ms / 1000;
+  const center = (start + end) / 2;
+  const span = Math.max(4, end - start + 1.5);
+  const windowStart = Math.max(0, center - span / 2);
+  const windowEnd = Math.min(duration, windowStart + span);
+  return {
+    start: Math.max(0, windowEnd - span),
+    end: windowEnd,
+  };
+}
+
+function timeToZoomX(seconds, width) {
+  const win = selectedZoomWindow();
+  return ((seconds - win.start) / Math.max(0.001, win.end - win.start)) * width;
+}
+
+function zoomXToTime(event) {
+  const rect = els.zoomWaveform.getBoundingClientRect();
+  const x = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+  const win = selectedZoomWindow();
+  return win.start + (x / rect.width) * (win.end - win.start);
+}
+
+function drawPeaks(ctx, width, height, startSeconds, endSeconds) {
+  const mid = height / 2;
+  const peaks = state.peaks.length ? state.peaks : new Array(160).fill(0.05);
+  const duration = Math.max(state.duration, els.audio.duration || 0, 1);
+  const startBucket = Math.max(0, Math.floor((startSeconds / duration) * peaks.length));
+  const endBucket = Math.min(peaks.length - 1, Math.ceil((endSeconds / duration) * peaks.length));
+  const visible = peaks.slice(startBucket, Math.max(startBucket + 1, endBucket + 1));
+  const barWidth = width / visible.length;
+  visible.forEach((peak, index) => {
+    const x = index * barWidth;
+    const h = Math.max(2, peak * height * 0.82);
+    ctx.fillStyle = index % 2 ? "#35402e" : "#425038";
+    ctx.fillRect(x, mid - h / 2, Math.max(1, barWidth * 0.72), h);
+  });
+}
+
 function drawWaveform() {
   const canvas = els.waveform;
   const ctx = canvas.getContext("2d");
@@ -239,15 +285,7 @@ function drawWaveform() {
   ctx.fillStyle = "#0d110c";
   ctx.fillRect(0, 0, width, height);
 
-  const mid = height / 2;
-  const peaks = state.peaks.length ? state.peaks : new Array(160).fill(0.05);
-  const barWidth = width / peaks.length;
-  peaks.forEach((peak, index) => {
-    const x = index * barWidth;
-    const h = Math.max(2, peak * height * 0.82);
-    ctx.fillStyle = index % 2 ? "#35402e" : "#425038";
-    ctx.fillRect(x, mid - h / 2, Math.max(1, barWidth * 0.72), h);
-  });
+  drawPeaks(ctx, width, height, 0, Math.max(state.duration, els.audio.duration || 0, 1));
 
   const playX = timeToX(els.audio.currentTime || 0, width);
   ctx.strokeStyle = "#f1b84b";
@@ -283,15 +321,66 @@ function drawWaveform() {
   }
 }
 
-function nearestHandle(event) {
+function drawZoomWaveform() {
+  const canvas = els.zoomWaveform;
+  const ctx = canvas.getContext("2d");
+  const rect = canvas.getBoundingClientRect();
+  const scale = window.devicePixelRatio || 1;
+  canvas.width = Math.max(1, Math.floor(rect.width * scale));
+  canvas.height = Math.max(1, Math.floor(rect.height * scale));
+  ctx.scale(scale, scale);
+
+  const width = rect.width;
+  const height = rect.height;
+  const win = selectedZoomWindow();
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "#0d110c";
+  ctx.fillRect(0, 0, width, height);
+  drawPeaks(ctx, width, height, win.start, win.end);
+
+  const playX = timeToZoomX(els.audio.currentTime || 0, width);
+  if (playX >= 0 && playX <= width) {
+    ctx.strokeStyle = "#f1b84b";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(playX, 0);
+    ctx.lineTo(playX, height);
+    ctx.stroke();
+  }
+
+  const selected = selectedSegment();
+  if (selected) {
+    const startX = timeToZoomX(selected.start_ms / 1000, width);
+    const endX = timeToZoomX(selected.end_ms / 1000, width);
+    ctx.fillStyle = "rgba(241, 184, 75, 0.25)";
+    ctx.fillRect(startX, 0, Math.max(2, endX - startX), height);
+    ctx.strokeStyle = "#f1b84b";
+    ctx.lineWidth = 4;
+    for (const x of [startX, endX]) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+      ctx.fillStyle = "#f1b84b";
+      ctx.fillRect(x - 7, 0, 14, height);
+    }
+  }
+
+  ctx.fillStyle = "#a8ad98";
+  ctx.font = "12px Cascadia Mono, monospace";
+  ctx.fillText(`${fmt(win.start * 1000)} - ${fmt(win.end * 1000)}`, 10, height - 10);
+}
+
+function nearestHandle(event, zoom = false) {
   const selected = selectedSegment();
   if (!selected) return null;
-  const rect = els.waveform.getBoundingClientRect();
+  const rect = (zoom ? els.zoomWaveform : els.waveform).getBoundingClientRect();
   const x = event.clientX - rect.left;
-  const startX = timeToX(selected.start_ms / 1000, rect.width);
-  const endX = timeToX(selected.end_ms / 1000, rect.width);
-  if (Math.abs(x - startX) < 18) return "start";
-  if (Math.abs(x - endX) < 18) return "end";
+  const startX = zoom ? timeToZoomX(selected.start_ms / 1000, rect.width) : timeToX(selected.start_ms / 1000, rect.width);
+  const endX = zoom ? timeToZoomX(selected.end_ms / 1000, rect.width) : timeToX(selected.end_ms / 1000, rect.width);
+  const hitSize = zoom ? 28 : 18;
+  if (Math.abs(x - startX) < hitSize) return "start";
+  if (Math.abs(x - endX) < hitSize) return "end";
   return null;
 }
 
@@ -314,6 +403,16 @@ function nudgeSelected(deltaMs) {
   renderAll();
 }
 
+function nudgeBoundary(kind, deltaMs) {
+  const selected = selectedSegment();
+  if (!selected) return;
+  if (kind === "start") {
+    setSegmentTime("start", selected.start_ms + deltaMs);
+  } else {
+    setSegmentTime("end", selected.end_ms + deltaMs);
+  }
+}
+
 els.waveform.addEventListener("mousedown", (event) => {
   const handle = nearestHandle(event);
   if (handle) {
@@ -324,9 +423,24 @@ els.waveform.addEventListener("mousedown", (event) => {
   drawWaveform();
 });
 
+els.zoomWaveform.addEventListener("mousedown", (event) => {
+  const handle = nearestHandle(event, true);
+  if (handle) {
+    state.dragging = `zoom:${handle}`;
+    return;
+  }
+  els.audio.currentTime = zoomXToTime(event);
+  drawWaveform();
+  drawZoomWaveform();
+});
+
 window.addEventListener("mousemove", (event) => {
   if (!state.dragging) return;
-  setSegmentTime(state.dragging, Math.round(canvasTime(event) * 1000));
+  if (state.dragging.startsWith("zoom:")) {
+    setSegmentTime(state.dragging.split(":")[1], Math.round(zoomXToTime(event) * 1000));
+  } else {
+    setSegmentTime(state.dragging, Math.round(canvasTime(event) * 1000));
+  }
 });
 
 window.addEventListener("mouseup", () => {
@@ -342,6 +456,7 @@ els.audio.addEventListener("timeupdate", () => {
     renderFocus();
   }
   drawWaveform();
+  drawZoomWaveform();
 });
 
 els.audio.addEventListener("play", () => {
@@ -365,8 +480,16 @@ els.nextLine.addEventListener("click", () => selectIndex(state.selectedIndex + 1
 els.setStart.addEventListener("click", () => setSegmentTime("start", currentMs()));
 els.setEnd.addEventListener("click", () => setSegmentTime("end", currentMs()));
 
-document.querySelectorAll("[data-nudge]").forEach((button) => {
-  button.addEventListener("click", () => nudgeSelected(Number(button.dataset.nudge)));
+document.querySelectorAll("[data-nudge-line]").forEach((button) => {
+  button.addEventListener("click", () => nudgeSelected(Number(button.dataset.nudgeLine)));
+});
+
+document.querySelectorAll("[data-nudge-start]").forEach((button) => {
+  button.addEventListener("click", () => nudgeBoundary("start", Number(button.dataset.nudgeStart)));
+});
+
+document.querySelectorAll("[data-nudge-end]").forEach((button) => {
+  button.addEventListener("click", () => nudgeBoundary("end", Number(button.dataset.nudgeEnd)));
 });
 
 els.saveTiming.addEventListener("click", async () => {
@@ -433,6 +556,7 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("resize", drawWaveform);
+window.addEventListener("resize", drawZoomWaveform);
 
 loadSongs()
   .then(() => {

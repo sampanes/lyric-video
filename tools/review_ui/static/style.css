@@ -230,6 +230,33 @@ h1 {
   cursor: crosshair;
 }
 
+.waveform.zoom {
+  height: 150px;
+}
+
+.zoom-block {
+  margin-top: 0.85rem;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.zoom-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 0.65rem;
+}
+
+.zoom-hint {
+  max-width: 35rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: right;
+}
+
 .focus-card {
   margin: 1rem 0;
   padding: 1.1rem;
@@ -263,6 +290,37 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
+}
+
+.fine-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.fine-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: rgba(13, 17, 12, 0.56);
+}
+
+.fine-card span {
+  width: 100%;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.fine-card button {
+  padding: 0.42rem 0.55rem;
+  font-size: 0.82rem;
 }
 
 .actions {
@@ -309,5 +367,18 @@ pre {
 
   .line-list {
     max-height: 18rem;
+  }
+
+  .fine-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .zoom-header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .zoom-hint {
+    text-align: left;
   }
 }

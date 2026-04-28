@@ -355,6 +355,8 @@ python scripts\launch_review_ui.py --song "approximate song name"
 This opens a local browser UI that reads the song package, plays the configured
 audio, shows rough waveform packets, edits `timing/reviewed/timing.json`, and
 saves with a backup.
+Use the zoomed selected-line waveform plus start-only/end-only nudge buttons
+for fine timing changes.
 
 For platform-specific exports:
 

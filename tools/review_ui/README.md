@@ -13,10 +13,12 @@ Current scope:
 - loads song package state from repo scripts
 - plays the configured audio file
 - shows rough waveform packets in the browser
+- shows a zoomed selected-line waveform for fine edits
 - loads `timing/reviewed/timing.json`
 - lets the user select lyric rows
 - lets the user set starts/ends from the playhead
 - lets the user drag selected start/end handles on the waveform
+- offers whole-line, start-only, and end-only nudge buttons down to 5ms
 - saves reviewed timing with a backup
 - can run a proof render through `scripts/render_song.py`
 

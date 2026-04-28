@@ -50,6 +50,17 @@
 
           <canvas id="waveform" class="waveform" width="1200" height="220"></canvas>
 
+          <div class="zoom-block">
+            <div class="zoom-header">
+              <div>
+                <p class="focus-label">fine tune selected line</p>
+                <strong>Zoomed selected range</strong>
+              </div>
+              <div class="zoom-hint">Drag handles here for small changes. `[` and `]` set start/end from playhead.</div>
+            </div>
+            <canvas id="zoomWaveform" class="waveform zoom" width="1200" height="150"></canvas>
+          </div>
+
           <div class="focus-card">
             <p class="focus-label">selected lyric</p>
             <h2 id="focusText">No lyric selected</h2>
@@ -61,12 +72,42 @@
             <button id="nextLine">Next</button>
             <button id="setStart">Set Start</button>
             <button id="setEnd">Set End</button>
-            <button data-nudge="-500">-500ms</button>
-            <button data-nudge="-250">-250ms</button>
-            <button data-nudge="-100">-100ms</button>
-            <button data-nudge="100">+100ms</button>
-            <button data-nudge="250">+250ms</button>
-            <button data-nudge="500">+500ms</button>
+          </div>
+
+          <div class="fine-grid">
+            <div class="fine-card">
+              <span>whole line</span>
+              <button data-nudge-line="-500">-500ms</button>
+              <button data-nudge-line="-250">-250ms</button>
+              <button data-nudge-line="-100">-100ms</button>
+              <button data-nudge-line="-25">-25ms</button>
+              <button data-nudge-line="25">+25ms</button>
+              <button data-nudge-line="100">+100ms</button>
+              <button data-nudge-line="250">+250ms</button>
+              <button data-nudge-line="500">+500ms</button>
+            </div>
+            <div class="fine-card">
+              <span>start only</span>
+              <button data-nudge-start="-250">-250ms</button>
+              <button data-nudge-start="-100">-100ms</button>
+              <button data-nudge-start="-25">-25ms</button>
+              <button data-nudge-start="-5">-5ms</button>
+              <button data-nudge-start="5">+5ms</button>
+              <button data-nudge-start="25">+25ms</button>
+              <button data-nudge-start="100">+100ms</button>
+              <button data-nudge-start="250">+250ms</button>
+            </div>
+            <div class="fine-card">
+              <span>end only</span>
+              <button data-nudge-end="-250">-250ms</button>
+              <button data-nudge-end="-100">-100ms</button>
+              <button data-nudge-end="-25">-25ms</button>
+              <button data-nudge-end="-5">-5ms</button>
+              <button data-nudge-end="5">+5ms</button>
+              <button data-nudge-end="25">+25ms</button>
+              <button data-nudge-end="100">+100ms</button>
+              <button data-nudge-end="250">+250ms</button>
+            </div>
           </div>
 
           <div class="actions">
