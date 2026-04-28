@@ -221,6 +221,8 @@ This makes it possible to:
   `python scripts\inspect_song.py "man behind the bar" --json`.
 - A self-service operator checklist is available with
   `python scripts\guide_song.py "man behind the bar"` or `--json`.
+- The first local timing review GUI launches with
+  `python scripts\launch_review_ui.py --song "man behind the bar"`.
 - A gentle scrolling lyric display is available with
   `python scripts\make_videos.py "man behind the bar" --layout soft_scroll`.
 - Repeatable output habits are captured as presets, for example
@@ -343,6 +345,16 @@ python scripts\timing_adjust.py fit "approximate song name" --from line_020 --to
 ```
 
 Timing review is documented in `docs/workflows/timing-review.md`.
+
+For the first command-launched timing GUI:
+
+```powershell
+python scripts\launch_review_ui.py --song "approximate song name"
+```
+
+This opens a local browser UI that reads the song package, plays the configured
+audio, shows rough waveform packets, edits `timing/reviewed/timing.json`, and
+saves with a backup.
 
 For platform-specific exports:
 

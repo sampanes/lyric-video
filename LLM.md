@@ -207,6 +207,15 @@ python scripts\timing_adjust.py fit "approximate song name" --from line_020 --to
 Use `--dry-run` first when the edit is uncertain. Each write backs up the
 previous reviewed timing under `timing/reviewed/backups/`.
 
+For the first local timing review GUI, launch:
+
+```powershell
+python scripts\launch_review_ui.py --song "approximate song name"
+```
+
+This is the preferred user-facing path for timing review when available. The
+CLI helper remains useful for scripted edits and debugging.
+
 For multi-aspect output, add render targets:
 
 ```powershell

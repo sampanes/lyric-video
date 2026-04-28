@@ -117,6 +117,17 @@ Timing review should be audio-first. Generated background video is not required
 for the user to correct lyric timing because the task is aligning words to
 sounds. Video proof renders come after timing edits.
 
+Current launch command:
+
+```powershell
+python scripts\launch_review_ui.py --song "song name"
+```
+
+The current GUI is intentionally narrow. It loads song state from the repo,
+serves the configured audio file, displays rough browser-decoded waveform
+packets, lets the user adjust reviewed timing, saves with a backup, and can run
+a horizontal soft-scroll proof render.
+
 ## Why This Matters
 
 For music, exact lyric timing is an editorial task. Whisper is useful because it

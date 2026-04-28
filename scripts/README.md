@@ -48,6 +48,9 @@ Current tools:
   adapter path.
 - `guide_song.py` prints a self-service operator checklist, with `--json` for
   GUI/automation consumers.
+- `launch_review_ui.py` starts the local browser timing-review UI from the repo
+  root. It serves song state, audio, reviewed timing, save-with-backup, and
+  proof-render endpoints.
 - `capture_timings.py` and `generate_assets.py` are future-facing placeholders
   that print their planned role instead of raising Python tracebacks.
 
@@ -65,6 +68,7 @@ python scripts\validate_song.py "man behind the bar" --require-timing --check-to
 python scripts\inspect_song.py "man behind the bar" --json
 python scripts\guide_song.py "man behind the bar"
 python scripts\guide_song.py "man behind the bar" --json
+python scripts\launch_review_ui.py --song "man behind the bar"
 python scripts\make_basic_video.py "man behind the bar" --force
 python scripts\make_basic_video.py "man behind the bar" --refresh-whisper
 python scripts\make_basic_video.py "man behind the bar" --targets all

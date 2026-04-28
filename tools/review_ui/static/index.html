@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lyric Video Review UI</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">lyric video control room</p>
+          <h1>Timing Review</h1>
+        </div>
+        <div class="song-loader">
+          <select id="songSelect" aria-label="Song"></select>
+          <input id="songInput" type="text" placeholder="or type approximate song name">
+          <button id="loadSong">Load</button>
+        </div>
+      </header>
+
+      <nav class="stepper" aria-label="Workflow steps">
+        <button class="step done">Song</button>
+        <button class="step done">Lyrics</button>
+        <button class="step active">Timing</button>
+        <button class="step">Sections</button>
+        <button class="step">Prompts</button>
+        <button class="step">Pictures</button>
+        <button class="step">Video Background</button>
+        <button class="step">Style</button>
+        <button class="step">Render</button>
+        <button class="step">Review</button>
+      </nav>
+
+      <main class="layout">
+        <aside class="panel side">
+          <div class="panel-title">Song State</div>
+          <div id="songState" class="state-box">Load a song to inspect it.</div>
+          <div class="panel-title spaced">Timing Rows</div>
+          <div id="lineList" class="line-list"></div>
+        </aside>
+
+        <section class="panel editor">
+          <div class="transport">
+            <button id="playPause" class="primary">Play</button>
+            <div id="clock" class="clock">0:00.000</div>
+            <audio id="audio" preload="auto"></audio>
+          </div>
+
+          <canvas id="waveform" class="waveform" width="1200" height="220"></canvas>
+
+          <div class="focus-card">
+            <p class="focus-label">selected lyric</p>
+            <h2 id="focusText">No lyric selected</h2>
+            <div id="focusTimes" class="focus-times"></div>
+          </div>
+
+          <div class="controls">
+            <button id="prevLine">Prev</button>
+            <button id="nextLine">Next</button>
+            <button id="setStart">Set Start</button>
+            <button id="setEnd">Set End</button>
+            <button data-nudge="-500">-500ms</button>
+            <button data-nudge="-250">-250ms</button>
+            <button data-nudge="-100">-100ms</button>
+            <button data-nudge="100">+100ms</button>
+            <button data-nudge="250">+250ms</button>
+            <button data-nudge="500">+500ms</button>
+          </div>
+
+          <div class="actions">
+            <button id="saveTiming" class="primary">Save Reviewed Timing</button>
+            <button id="renderProof">Render Proof</button>
+            <span id="saveStatus" class="status"></span>
+          </div>
+
+          <details class="log-wrap">
+            <summary>Job output</summary>
+            <pre id="jobLog"></pre>
+          </details>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>
