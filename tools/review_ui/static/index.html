@@ -43,7 +43,7 @@
 
         <section class="panel editor">
           <div class="transport">
-            <button id="playPause" class="primary">Play</button>
+            <button id="playPause" class="primary" data-key="Space">Play</button>
             <div id="clock" class="clock">0:00.000</div>
             <audio id="audio" preload="auto"></audio>
           </div>
@@ -68,11 +68,11 @@
           </div>
 
           <div class="controls">
-            <button id="prevLine">Prev</button>
-            <button id="nextLine">Next</button>
-            <button id="setStart">Set Start</button>
-            <button id="setEnd">Set End</button>
-            <button id="snapStartToPrev" title="Set this segment's start to the previous segment's end time (keyboard: \)">Snap Start to Prev End</button>
+            <button id="prevLine" data-key="↑">Prev</button>
+            <button id="nextLine" data-key="↓">Next</button>
+            <button id="setStart" data-key="[">Set Start</button>
+            <button id="setEnd" data-key="]">Set End</button>
+            <button id="snapStartToPrev" data-key="\" title="Set this segment's start to the previous segment's end time">Snap Start to Prev End</button>
           </div>
 
           <div class="fine-grid">

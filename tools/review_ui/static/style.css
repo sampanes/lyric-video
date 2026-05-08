@@ -57,6 +57,21 @@ button.dirty {
   box-shadow: 0 0 0 3px rgba(241, 184, 75, 0.18);
 }
 
+button[data-key]:hover::after,
+button[data-key]:focus-visible::after {
+  content: attr(data-key);
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.05rem 0.32rem;
+  border: 1px solid currentColor;
+  border-radius: 0.28rem;
+  font-family: "Cascadia Mono", monospace;
+  font-size: 0.72em;
+  opacity: 0.65;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
 input,
 select {
   color: var(--ink);
