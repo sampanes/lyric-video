@@ -221,8 +221,14 @@ This makes it possible to:
   `python scripts\inspect_song.py "man behind the bar" --json`.
 - A self-service operator checklist is available with
   `python scripts\guide_song.py "man behind the bar"` or `--json`.
-- The first local timing review GUI launches with
+- The local timing review GUI launches with
   `python scripts\launch_review_ui.py --song "man behind the bar"`.
+  Replace the song name with any partial name or slug for another song — the
+  `--song` value is fuzzy-matched against folder names in `songs\`, so
+  `"first human"` resolves to `songs\evie-first-take-first-human\` and
+  `"evie first human"` or the exact slug `"evie-first-take-first-human"` both
+  work too.  The UI opens in your browser automatically; press Ctrl+C to stop
+  the server when done.
 - A gentle scrolling lyric display is available with
   `python scripts\make_videos.py "man behind the bar" --layout soft_scroll`.
 - Repeatable output habits are captured as presets, for example

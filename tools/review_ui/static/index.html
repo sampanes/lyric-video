@@ -56,7 +56,7 @@
                 <p class="focus-label">fine tune selected line</p>
                 <strong>Zoomed selected range</strong>
               </div>
-              <div class="zoom-hint">Drag handles here for small changes. `[` and `]` set start/end from playhead.</div>
+              <div class="zoom-hint">Drag handles here for small changes. `[` and `]` set start/end from playhead. `\` snaps start to previous segment's end.</div>
             </div>
             <canvas id="zoomWaveform" class="waveform zoom" width="1200" height="150"></canvas>
           </div>
@@ -72,6 +72,7 @@
             <button id="nextLine">Next</button>
             <button id="setStart">Set Start</button>
             <button id="setEnd">Set End</button>
+            <button id="snapStartToPrev" title="Set this segment's start to the previous segment's end time (keyboard: \)">Snap Start to Prev End</button>
           </div>
 
           <div class="fine-grid">

@@ -27,6 +27,7 @@ const els = {
   nextLine: document.getElementById("nextLine"),
   setStart: document.getElementById("setStart"),
   setEnd: document.getElementById("setEnd"),
+  snapStartToPrev: document.getElementById("snapStartToPrev"),
   saveTiming: document.getElementById("saveTiming"),
   renderProof: document.getElementById("renderProof"),
   saveStatus: document.getElementById("saveStatus"),
@@ -516,10 +517,22 @@ els.playPause.addEventListener("click", () => {
   }
 });
 
+function snapStartToPrevEnd() {
+  if (state.selectedIndex < 1) return;
+  const segs = segments();
+  const prev = segs[state.selectedIndex - 1];
+  const selected = segs[state.selectedIndex];
+  if (!prev || !selected) return;
+  selected.start_ms = Math.min(prev.end_ms, selected.end_ms - 50);
+  markDirty();
+  renderAll();
+}
+
 els.prevLine.addEventListener("click", () => selectIndex(state.selectedIndex - 1, true));
 els.nextLine.addEventListener("click", () => selectIndex(state.selectedIndex + 1, true));
 els.setStart.addEventListener("click", () => setSegmentTime("start", currentMs()));
 els.setEnd.addEventListener("click", () => setSegmentTime("end", currentMs()));
+els.snapStartToPrev.addEventListener("click", () => snapStartToPrevEnd());
 
 document.querySelectorAll("[data-nudge-line]").forEach((button) => {
   button.addEventListener("click", () => nudgeSelected(Number(button.dataset.nudgeLine)));
@@ -612,6 +625,10 @@ window.addEventListener("keydown", (event) => {
   if (event.code === "BracketRight") {
     event.preventDefault();
     setSegmentTime("end", currentMs());
+  }
+  if (event.code === "Backslash") {
+    event.preventDefault();
+    snapStartToPrevEnd();
   }
 });
 
