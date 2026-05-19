@@ -8,8 +8,11 @@ For each `inputs/prompts/<concept>.txt` in a song folder, this script:
    if it exists; otherwise uses a Wan-safe generic default.
 3. Queues `basic_wan_i2v_subtle-3.api.json` at length=33 steps=8 with
    `wan-<concept>` as the filename prefix.
-4. Smooth-loops each new clip via scripts/make_smooth_loop.py unless
-   `--no-smooth-loop` is set.
+4. Loop-processes each new clip:
+   - Crossfade loop (`make_smooth_loop.py`) by default.
+   - Bounce loop (`make_bounce_loop.py`) if `inputs/prompts/<concept>.bounce.txt`
+     exists, or globally if `--bounce-loop` is passed.
+   - Skipped entirely if `--no-smooth-loop` is set.
 
 Sequential; ComfyUI queues that way regardless. Each clip is roughly
 4 minutes on this machine, so the whole batch is `N * 4 min`.
@@ -115,7 +118,12 @@ def main() -> int:
     parser.add_argument(
         "--no-smooth-loop",
         action="store_true",
-        help="Skip the make_smooth_loop pass on each Wan output.",
+        help="Skip the loop postprocess entirely (both crossfade and bounce).",
+    )
+    parser.add_argument(
+        "--bounce-loop",
+        action="store_true",
+        help="Force bounce-loop for every candidate, regardless of per-concept marker files.",
     )
     parser.add_argument(
         "--smooth-trim-start",
@@ -157,6 +165,7 @@ def main() -> int:
 
     queue_script = str(SCRIPTS_DIR / "comfyui_queue.py")
     smooth_script = str(SCRIPTS_DIR / "make_smooth_loop.py")
+    bounce_script = str(SCRIPTS_DIR / "make_bounce_loop.py")
 
     queued: list[str] = []
     skipped_no_still: list[str] = []
@@ -203,7 +212,7 @@ def main() -> int:
                 print(f"FAILED: {concept} (comfyui_queue exit {result.returncode})")
                 continue
 
-        # Smooth-loop pass.
+        # Loop postprocess pass.
         if args.no_smooth_loop:
             queued.append(concept)
             continue
@@ -212,20 +221,27 @@ def main() -> int:
             # Wan might have auto-incremented; pick the latest wan-<concept>_*.mp4
             wan_outputs = sorted(backgrounds_dir.glob(f"wan-{concept}_*_.mp4"))
             wan_output = wan_outputs[-1] if wan_outputs else wan_output
-        smooth_command = [
-            sys.executable,
-            smooth_script,
-            str(wan_output),
-            "--trim-start", str(args.smooth_trim_start),
-            "--overlap", str(args.smooth_overlap),
-        ]
+        bounce_marker = prompts_dir / f"{concept}.bounce.txt"
+        use_bounce = args.bounce_loop or bounce_marker.exists()
+        if use_bounce:
+            loop_command = [sys.executable, bounce_script, str(wan_output)]
+            loop_kind = "BOUNCE"
+        else:
+            loop_command = [
+                sys.executable,
+                smooth_script,
+                str(wan_output),
+                "--trim-start", str(args.smooth_trim_start),
+                "--overlap", str(args.smooth_overlap),
+            ]
+            loop_kind = "SMOOTH"
         if args.dry_run:
-            print("SMOOTH: " + " ".join(smooth_command))
+            print(f"{loop_kind}: " + " ".join(loop_command))
             queued.append(concept)
             continue
-        smooth_result = subprocess.run(smooth_command, cwd=REPO_ROOT)
-        if smooth_result.returncode != 0:
-            print(f"WARN: smooth-loop failed for {concept}; raw Wan output remains.")
+        loop_result = subprocess.run(loop_command, cwd=REPO_ROOT)
+        if loop_result.returncode != 0:
+            print(f"WARN: {loop_kind.lower()}-loop failed for {concept}; raw Wan output remains.")
         queued.append(concept)
 
     print("")
