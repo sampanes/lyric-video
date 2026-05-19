@@ -1313,6 +1313,15 @@ def validate_song_package(
         if not path.exists():
             warnings.append(f"Configured background does not exist yet: {path}")
 
+    if config.get("background_mode") == "video":
+        bg_video = config.get("background_video")
+        if not bg_video:
+            errors.append("background_mode is 'video' but background_video is not set")
+        else:
+            bg_path = song_dir / bg_video
+            if not bg_path.exists():
+                errors.append(f"Configured background_video does not exist: {bg_path}")
+
     reviewed = config.get("timing", {}).get("reviewed", "timing/reviewed/timing.json")
     timing_path = song_dir / reviewed
     if timing_path.exists():
@@ -1341,7 +1350,7 @@ def render_video_background(
     background_video_path: Path,
     target_name: str = "horizontal",
     layout: str = "standard",
-    variant: str = "vibe",
+    variant: str | None = "vibe",
 ) -> Path:
     target = render_target(target_name)
     output = config.get("output", {})
@@ -1350,7 +1359,8 @@ def render_video_background(
     fps = int(output.get("fps", 30))
     configured_filename = output.get("filename", f"{config['id']}.mp4")
     stem = Path(configured_filename).stem
-    filename = f"{stem}.{target['suffix']}.{variant}.mp4"
+    variant_suffix = f".{variant}" if variant else ""
+    filename = f"{stem}.{target['suffix']}{variant_suffix}.mp4"
     export_dir = song_dir / output.get("directory", "exports/")
     export_dir.mkdir(parents=True, exist_ok=True)
 

@@ -383,6 +383,8 @@ Follow-up successful passes:
 | `49460988-587e-4dcf-a7f7-df4e07e40c1f` | `832x480` | `17` | `4` | success | Longer low-step probe completed. |
 | `38802c1f-2f16-4f5c-89be-d22f889bfedd` | `832x480` | `33` | `4` | success | Baseline length works at low steps. |
 | `b241a79d-9e00-499c-8602-e6ebda2816b2` | `832x480` | `33` | `8` | success | Moderate-step pass completed in roughly 12 minutes. |
+| `4e1ab31f-ae2b-4cf0-bfb8-08e72917a9d2` | `832x480` | `33` | `8` | success but rejected | First Human v1 with abstract pastel still + generic shimmer prompt (`wan-v2`). User rejected aesthetic as "tablemat" — too static, no theme connection. Lesson: prompt the still as a scene, not as decoration. See [[feedback_live_wallpaper_aesthetic]]. |
+| `c7199eac-a685-4f93-9cc7-4c8b31759c7f` | `832x480` | `33` | `8` | partial success | First Human v3 cave scene (`wan-v3-cave`). Source: `still-v2-cave_00001_.png` (caveman silhouette by fire). Scene-specific motion prompt (smoke drift, ember rise, firelight flicker). Real visible motion, not just shimmer. **Issue 1 — settle flash:** the very first frames carry a bright firelight flash that does not match steady firelight; reads as flash photography. Cause is likely Wan's denoiser resolving into motion. Mitigation: trim the first 1–3 frames before looping. **Issue 2 — bounce-loop incompatibility:** because the motion is directional (smoke rises, embers float up), forward-then-reverse playback shows smoke falling and embers settling into the fire, which the eye reads as broken. Bounce-loop is incompatible with directional ambient motion. See [[scripts-make_smooth_loop]] for the crossfade-loop replacement. |
 
 Current practical recommendation:
 
@@ -393,25 +395,86 @@ Current practical recommendation:
 - Always override the positive prompt with song-specific background motion
   language.
 
-## Bounce Loop Postprocess
+## Live Wallpaper Production v1 (per song)
 
-For ultra-subtle generated clips that are not truly loopable, create a
-palindrome bounce loop in FFmpeg:
+When a Wan take is judged usable, lock it as the song's live-wallpaper baseline:
 
-1. play forward
-2. reverse the clip
-3. trim the first reversed frame to reduce duplicate seam frames
-4. concatenate forward plus reverse
+1. Append the prompt id and overrides to the table above.
+2. Save the song-aware motion prompt into `songs/<song>/inputs/song_style_prompt.txt`
+   under a clearly labeled `Background motion (Wan i2v):` section so the next
+   re-run is reproducible from the song folder alone.
+3. Use `scripts/render_vibe_video.py` with the bounce loop as the background
+   and a descriptive `--variant` (e.g. `wan-v2-soft-scroll`).
 
-Current helper:
+Closed workflow gap:
+
+- `song.json` now supports `background_mode: "video"` + `background_video`
+  pointing at the chosen loop file, plus an optional `background_variant` for
+  the export-filename suffix (omit it for the canonical
+  `<song>.<target>.mp4`). When `background_mode == "video"`, `make_videos.py`
+  routes the per-target loop through `render_video_background` automatically;
+  the `layout` field on `song.json` is honored as the default lyric layout
+  too. This lets a song's "lock the cave loop" decision live in one place so
+  the GUI → save → `make_videos.py "song"` cycle is one command.
+
+Remaining known gaps:
+
+- `scripts/make_bounce_loop.py` writes `<stem>.bounce.mp4`, while earlier
+  manual files used `<stem>_bounce.mp4` (underscore). Both are valid inputs
+  downstream; the dot convention is preferred for new files.
+- Raw ComfyUI MP4s currently land directly in `assets/backgrounds/`. The
+  doc's stated separation (raw to `inputs/video/`, curated to
+  `assets/backgrounds/`) is not yet enforced by `comfyui_queue.py`.
+- Non-horizontal targets crop the cave 832x480 source via center-crop; for
+  songs that need vertical/square exports, plan a per-target source still.
+
+## Loop Postprocess — Bounce vs Smooth
+
+Two helpers exist. Pick based on whether the source motion is directional.
+
+### Bounce (forward + reverse) — `scripts\make_bounce_loop.py`
+
+Use only for **non-directional** ambient motion, where reversing playback is
+visually neutral: pastel shimmer, two-way drift, color cycling, undirected
+glow.
 
 ```powershell
 python scripts\make_bounce_loop.py path\to\clip.mp4 --output path\to\clip.bounce.mp4
 ```
 
-Use this for calm ambient motion. If the source has flicker or artifacts,
-reverse playback may expose those issues, but this is still practical for quick
-lyric-video background loops.
+Do **not** use bounce for directional motion — rising smoke, floating embers,
+drifting mist, falling water, walking dust. Reverse playback shows smoke
+falling, embers settling into the fire, etc., which always reads as broken.
+
+### Smooth crossfade (forward-only) — `scripts\make_smooth_loop.py`
+
+Use for directional ambient motion. The tail of the clip crossfades back into
+the head, so the file loops cleanly when `-stream_loop` wraps.
+
+```powershell
+python scripts\make_smooth_loop.py path\to\clip.mp4 --trim-start 2 --overlap 1.0
+```
+
+- `--trim-start N` drops the first N frames. Wan i2v often produces a
+  brightness "settle flash" across the first 1–3 frames; trimming kills it
+  and gives the loop a stable head frame to crossfade into.
+- `--overlap S` is the crossfade duration in seconds. 1.0s is a safe default
+  for an 8 fps / 33-frame Wan clip. Longer overlap hides the seam better but
+  shortens the clip's "non-crossfade" section.
+
+The output runs forward-only and loops cleanly with `-stream_loop -1` in the
+final render command.
+
+### Future direction — AI tween (backlog, nice-to-have, no due date)
+
+The crossfade in `make_smooth_loop.py` is "passable" per the user — good
+enough to ship. Better looping is a backlog item, not a blocker. Only revisit
+if a future scene's motion ghosts visibly through the crossfade.
+
+When that happens, swap the xfade for optical-flow / AI frame interpolation
+(RIFE or FILM) bridging the tail back to the head. The current
+`make_smooth_loop.py` filtergraph is the seam to replace; the rest of the
+pipeline can stay the same.
 
 ## BPM
 

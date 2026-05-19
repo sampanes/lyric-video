@@ -14,6 +14,7 @@ from pipeline_common import (
     load_preset,
     normalize_render_targets,
     render_basic_video,
+    render_video_background,
     resolve_layout,
     resolve_song_dir,
     validate_song_package,
@@ -126,11 +127,25 @@ def main(description: str | None = None) -> int:
     layout = resolve_layout(args.layout, preset, config)
     configured_targets = config.get("output", {}).get("targets")
     targets = normalize_render_targets(args.targets if args.targets is not None else configured_targets)
+    use_video_bg = config.get("background_mode") == "video" and config.get("background_video")
+    bg_video_path = (song_dir / config["background_video"]) if use_video_bg else None
+    variant = config.get("background_variant") if use_video_bg else None
     outputs = []
     ass_paths = []
     for target in targets:
         ass_path = write_ass_file(song_dir, timing, config, target, layout)
-        output_path = render_basic_video(song_dir, config, ass_path, target, layout)
+        if use_video_bg:
+            output_path = render_video_background(
+                song_dir,
+                config,
+                ass_path,
+                bg_video_path,
+                target_name=target,
+                layout=layout,
+                variant=variant,
+            )
+        else:
+            output_path = render_basic_video(song_dir, config, ass_path, target, layout)
         ass_paths.append(ass_path)
         outputs.append(output_path)
 
