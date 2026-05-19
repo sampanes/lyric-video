@@ -33,6 +33,15 @@ DEFAULT_WORKFLOW = REPO_ROOT / "workflows" / "comfyui" / "node-graphs" / "basic_
 DEFAULT_WIDTH = 832
 DEFAULT_HEIGHT = 480
 
+# Flux happily renders fake text (signs, banners, watermarks) unless told
+# otherwise, which destroys the background under a lyric overlay. Append this
+# unless --no-anti-text is set.
+ANTI_TEXT_SUFFIX = (
+    "no text, no letters, no words, no signs, no captions, no subtitles, "
+    "no watermarks, no signatures, no logos, no writing, no graffiti, "
+    "no posters, no labels, no billboards"
+)
+
 
 def stable_seed(name: str) -> int:
     digest = hashlib.sha256(name.encode("utf-8")).hexdigest()
@@ -64,6 +73,11 @@ def main() -> int:
         action="store_true",
         help="Print the per-candidate comfyui_queue command without running it.",
     )
+    parser.add_argument(
+        "--no-anti-text",
+        action="store_true",
+        help="Skip the default anti-text suffix. Use only if you actually want Flux to render text on the still.",
+    )
     args = parser.parse_args()
 
     song_dir = resolve_song_dir(args.song)
@@ -90,6 +104,8 @@ def main() -> int:
         if not text:
             print(f"Skipping empty prompt: {prompt_file.name}")
             continue
+        if not args.no_anti_text:
+            text = f"{text.rstrip(',. ').rstrip()}. {ANTI_TEXT_SUFFIX}"
         concept = prompt_file.stem
         seed = stable_seed(concept)
         filename_prefix = args.prefix_template.format(song=song_dir.name, concept=concept)
