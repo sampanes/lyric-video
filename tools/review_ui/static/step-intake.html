@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Intake — Lyric Video Review UI</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">lyric video control room</p>
+          <h1>Step 1 &mdash; Intake</h1>
+        </div>
+        <div class="song-loader">
+          <select id="songSelect" aria-label="Song"></select>
+          <input id="songInput" type="text" placeholder="approx name if not listed">
+          <button id="loadSong">Load Song</button>
+        </div>
+      </header>
+
+      <nav class="stepper" aria-label="Workflow steps"></nav>
+
+      <main class="layout">
+        <aside class="panel side">
+          <div class="panel-title">What This Step Does</div>
+          <div class="state-box">Create a new song folder with the canonical subdirectory layout. Capture metadata (title, artist, song vibes, optional BPM). Locate the audio file and the lyric file you've dropped into the folder. Result: a song.json wired to its inputs, ready for Step 2.</div>
+          <div class="panel-title spaced">What This Will Run</div>
+          <pre>python scripts\intake_song.py "your-slug"</pre>
+        </aside>
+
+        <section class="panel editor">
+          <div style="padding: 1.5rem; color: var(--muted);">
+            <p><strong>Coming soon.</strong> Milestone&nbsp;1 will put a form here: slug, audio drop zone, lyric drop zone, title/artist/vibes/BPM fields, "Create Song" button.</p>
+            <p>For now, run the command shown on the left in your terminal. The script is interactive — it will prompt you for fields as it goes.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/step-stepper.js"></script>
+    <script src="/step-picker.js"></script>
+  </body>
+</html>

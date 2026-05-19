@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flux Candidates &mdash; Lyric Video Review UI</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">lyric video control room</p>
+          <h1>Step 6 &mdash; Flux Candidates</h1>
+        </div>
+        <div class="song-loader">
+          <select id="songSelect" aria-label="Song"></select>
+          <input id="songInput" type="text" placeholder="approx name if not listed">
+          <button id="loadSong">Load Song</button>
+        </div>
+      </header>
+
+      <nav class="stepper" aria-label="Workflow steps"></nav>
+
+      <main class="layout">
+        <aside class="panel side">
+          <div class="panel-title">What This Step Does</div>
+          <div class="state-box">Drop one prompt per candidate into inputs/prompts/ (filename becomes the candidate label). The batcher queues a Flux text-to-image run per file at 832x480 with a seed derived from the filename so re-runs reproduce. An anti-text suffix is appended automatically so Flux doesn't paint fake signs and watermarks on your scene.</div>
+          <div class="panel-title spaced">What This Will Run</div>
+          <pre>python scripts\queue_flux_candidates.py "your-slug"</pre>
+        </aside>
+
+        <section class="panel editor">
+          <div style="padding: 1.5rem; color: var(--muted);">
+            <p><strong>Coming soon.</strong> Milestone&nbsp;6 will put a prompt list here (add / edit / delete inline), a "Generate All Candidates" button, and a grid of resulting stills as they finish.</p>
+            <p>For now, drop your <code>.txt</code> prompt files into <code>songs\your-slug\inputs\prompts\</code> and run the command on the left.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/step-stepper.js"></script>
+    <script src="/step-picker.js"></script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ComfyUI &mdash; Lyric Video Review UI</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">lyric video control room</p>
+          <h1>Step 5 &mdash; ComfyUI</h1>
+        </div>
+        <div class="song-loader">
+          <select id="songSelect" aria-label="Song"></select>
+          <input id="songInput" type="text" placeholder="approx name if not listed">
+          <button id="loadSong">Load Song</button>
+        </div>
+      </header>
+
+      <nav class="stepper" aria-label="Workflow steps"></nav>
+
+      <main class="layout">
+        <aside class="panel side">
+          <div class="panel-title">What This Step Does</div>
+          <div class="state-box">Bring up the local ComfyUI API server so Steps 6 and 7 can queue Flux and Wan jobs to it. The server reads its install path from LOCAL_CONFIG.json's comfyui block. Treat ComfyUI as a local API, not a UI to click — Step 6 and Step 7 do all the clicking for you.</div>
+          <div class="panel-title spaced">What This Will Run</div>
+          <pre>python scripts\comfyui_server.py status
+python scripts\comfyui_server.py start
+python scripts\comfyui_server.py stop</pre>
+        </aside>
+
+        <section class="panel editor">
+          <div style="padding: 1.5rem; color: var(--muted);">
+            <p><strong>Coming soon.</strong> Milestone&nbsp;5 will put a status indicator (green dot = running, red = down) here with Start / Stop buttons.</p>
+            <p>For now, run <code>python scripts\comfyui_server.py status</code> in your terminal and follow up with <code>start</code> if it's not running.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/step-stepper.js"></script>
+    <script src="/step-picker.js"></script>
+  </body>
+</html>

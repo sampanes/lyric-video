@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wan Candidates &mdash; Lyric Video Review UI</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">lyric video control room</p>
+          <h1>Step 7 &mdash; Wan Candidates</h1>
+        </div>
+        <div class="song-loader">
+          <select id="songSelect" aria-label="Song"></select>
+          <input id="songInput" type="text" placeholder="approx name if not listed">
+          <button id="loadSong">Load Song</button>
+        </div>
+      </header>
+
+      <nav class="stepper" aria-label="Workflow steps"></nav>
+
+      <main class="layout">
+        <aside class="panel side">
+          <div class="panel-title">What This Step Does</div>
+          <div class="state-box">Animate every Flux still whose concept has a matching prompt file. Per-concept motion prompts go in inputs/prompts/&lt;concept&gt;.motion.txt; per-concept loop type via empty marker inputs/prompts/&lt;concept&gt;.bounce.txt (presence flips that concept from crossfade-smooth to forward+reverse bounce). About 4 minutes per candidate.</div>
+          <div class="panel-title spaced">What This Will Run</div>
+          <pre>python scripts\queue_wan_candidates.py "your-slug"</pre>
+        </aside>
+
+        <section class="panel editor">
+          <div style="padding: 1.5rem; color: var(--muted);">
+            <p><strong>Coming soon.</strong> Milestone&nbsp;7 will put a concept list here (with per-concept motion textarea and smooth/bounce toggle), an "Animate All" button, and inline video players for each result.</p>
+            <p>For now, edit your <code>.motion.txt</code> / <code>.bounce.txt</code> files in <code>inputs/prompts/</code> and run the command on the left.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/step-stepper.js"></script>
+    <script src="/step-picker.js"></script>
+  </body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Style Prompt &mdash; Lyric Video Review UI</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">lyric video control room</p>
+          <h1>Step 4 &mdash; Style Prompt</h1>
+        </div>
+        <div class="song-loader">
+          <select id="songSelect" aria-label="Song"></select>
+          <input id="songInput" type="text" placeholder="approx name if not listed">
+          <button id="loadSong">Load Song</button>
+        </div>
+      </header>
+
+      <nav class="stepper" aria-label="Workflow steps"></nav>
+
+      <main class="layout">
+        <aside class="panel side">
+          <div class="panel-title">What This Step Does</div>
+          <div class="state-box">Describe the scene you want as the live wallpaper. This file is your creative direction record. Step 6 (Flux Candidates) will pull from your "Background still" line; Step 7 (Wan Candidates) will pull from your "Background motion" line. Keep three labeled sections: song vibe, background still (Flux prompt), background motion (Wan motion language).</div>
+          <div class="panel-title spaced">What This Will Edit</div>
+          <pre>songs\your-slug\inputs\song_style_prompt.txt</pre>
+        </aside>
+
+        <section class="panel editor">
+          <div style="padding: 1.5rem; color: var(--muted);">
+            <p><strong>Coming soon.</strong> Milestone&nbsp;4 will put a multi-line editor here, save back to the song folder, and surface inline reminders of the three-section structure.</p>
+            <p>For now, open the file in your editor of choice.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="/step-stepper.js"></script>
+    <script src="/step-picker.js"></script>
+  </body>
+</html>
