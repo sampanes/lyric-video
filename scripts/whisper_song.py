@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -12,10 +13,26 @@ from pipeline_common import config_path, ensure_song_config, resolve_song_dir, s
 
 
 DEFAULT_WHISPERX_COMMAND = "whisperx"
+LOCAL_CONFIG_PATH = Path(__file__).resolve().parents[1] / "LOCAL_CONFIG.json"
+
+
+def _local_whisperx_exe() -> str | None:
+    if not LOCAL_CONFIG_PATH.exists():
+        return None
+    try:
+        data = json.loads(LOCAL_CONFIG_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    section = data.get("whisperx")
+    if isinstance(section, dict):
+        exe = section.get("exe")
+        if isinstance(exe, str) and exe.strip():
+            return exe.strip()
+    return None
 
 
 def resolve_whisperx_executable() -> str:
-    configured = os.environ.get("WHISPERX_EXE")
+    configured = os.environ.get("WHISPERX_EXE") or _local_whisperx_exe()
     if configured:
         configured_path = Path(configured).expanduser()
         if configured_path.exists():
@@ -24,8 +41,8 @@ def resolve_whisperx_executable() -> str:
         if configured_on_path:
             return configured_on_path
         raise SystemExit(
-            "WhisperX executable not found from WHISPERX_EXE. "
-            "Set WHISPERX_EXE to the whisperx executable in your local venv."
+            f"WhisperX executable not found at configured path: {configured}. "
+            "Update WHISPERX_EXE or LOCAL_CONFIG.json's whisperx.exe."
         )
 
     whisperx = shutil.which(DEFAULT_WHISPERX_COMMAND)
@@ -33,8 +50,9 @@ def resolve_whisperx_executable() -> str:
         return whisperx
 
     raise SystemExit(
-        "WhisperX executable not found. Set WHISPERX_EXE to your local "
-        "whisperx executable, or put whisperx on PATH."
+        "WhisperX executable not found. Set WHISPERX_EXE, add a "
+        "\"whisperx\": {\"exe\": \"...\"} block to LOCAL_CONFIG.json, "
+        "or put whisperx on PATH."
     )
 
 
