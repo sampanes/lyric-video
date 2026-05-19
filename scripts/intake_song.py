@@ -308,6 +308,10 @@ def main() -> int:
     config["audio"] = str(audio_target.relative_to(song_dir)).replace("\\", "/")
     config["lyrics"] = str(lyric_target.relative_to(song_dir)).replace("\\", "/")
 
+    output = dict(template.get("output") or {})
+    output["filename"] = f"{song_dir.name}.mp4"
+    config["output"] = output
+
     config_path = song_dir / "song.json"
     config_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
 
