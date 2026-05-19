@@ -30,6 +30,7 @@ const els = {
   snapStartToPrev: document.getElementById("snapStartToPrev"),
   saveTiming: document.getElementById("saveTiming"),
   renderProof: document.getElementById("renderProof"),
+  quitServer: document.getElementById("quitServer"),
   saveStatus: document.getElementById("saveStatus"),
   jobLog: document.getElementById("jobLog"),
 };
@@ -447,6 +448,28 @@ function nudgeBoundary(kind, deltaMs) {
   }
 }
 
+function nudgeFromSelected(deltaMs) {
+  if (state.selectedIndex < 0) return;
+  const segs = segments();
+  const idx = state.selectedIndex;
+  if (!segs[idx]) return;
+  let delta = deltaMs;
+  if (delta < 0) {
+    const lowerBound = idx > 0 ? segs[idx - 1].end_ms : 0;
+    const candidateStart = segs[idx].start_ms + delta;
+    if (candidateStart < lowerBound) {
+      delta = lowerBound - segs[idx].start_ms;
+    }
+  }
+  if (delta === 0) return;
+  for (let i = idx; i < segs.length; i++) {
+    segs[i].start_ms += delta;
+    segs[i].end_ms += delta;
+  }
+  markDirty();
+  renderAll();
+}
+
 els.waveform.addEventListener("mousedown", (event) => {
   const handle = nearestHandle(event);
   if (handle) {
@@ -523,7 +546,16 @@ function snapStartToPrevEnd() {
   const prev = segs[state.selectedIndex - 1];
   const selected = segs[state.selectedIndex];
   if (!prev || !selected) return;
-  selected.start_ms = Math.min(prev.end_ms, selected.end_ms - 50);
+  const targetStart = prev.end_ms;
+  if (targetStart <= selected.end_ms - 50) {
+    selected.start_ms = targetStart;
+  } else {
+    const delta = targetStart - selected.start_ms;
+    for (let i = state.selectedIndex; i < segs.length; i++) {
+      segs[i].start_ms += delta;
+      segs[i].end_ms += delta;
+    }
+  }
   markDirty();
   renderAll();
 }
@@ -544,6 +576,10 @@ document.querySelectorAll("[data-nudge-start]").forEach((button) => {
 
 document.querySelectorAll("[data-nudge-end]").forEach((button) => {
   button.addEventListener("click", () => nudgeBoundary("end", Number(button.dataset.nudgeEnd)));
+});
+
+document.querySelectorAll("[data-nudge-cascade]").forEach((button) => {
+  button.addEventListener("click", () => nudgeFromSelected(Number(button.dataset.nudgeCascade)));
 });
 
 els.saveTiming.addEventListener("click", async () => {
@@ -591,6 +627,20 @@ els.renderProof.addEventListener("click", async () => {
     setStatus(`Render failed: ${error.message}`);
     setJobLog(error.stack || String(error));
   }
+});
+
+els.quitServer.addEventListener("click", async () => {
+  if (state.dirty && !window.confirm("Unsaved timing changes will be lost. Quit anyway?")) return;
+  setStatus("Stopping server...");
+  try {
+    await fetch("/api/shutdown", { method: "POST" });
+  } catch (_error) {
+    // expected: the server shuts down mid-response on some browsers
+  }
+  setStatus("Server stopped. You can close this tab.");
+  els.quitServer.disabled = true;
+  els.saveTiming.disabled = true;
+  els.renderProof.disabled = true;
 });
 
 els.loadSong.addEventListener("click", () => {

@@ -7,6 +7,7 @@ import mimetypes
 import shutil
 import subprocess
 import sys
+import threading
 from datetime import datetime
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -203,9 +204,15 @@ class ReviewUiHandler(BaseHTTPRequestHandler):
                 return self.save_timing()
             if parsed.path == "/api/song/render-proof":
                 return self.render_proof()
+            if parsed.path == "/api/shutdown":
+                return self.shutdown_server()
             return self.send_error_json("Unknown API endpoint.", HTTPStatus.NOT_FOUND)
         except Exception as exc:  # pragma: no cover - local UI safety net
             return self.send_error_json(str(exc), HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    def shutdown_server(self) -> None:
+        self.send_json({"ok": True, "message": "Server shutting down."})
+        threading.Thread(target=self.server.shutdown, daemon=True).start()
 
     def send_static(self, raw_path: str, *, head_only: bool = False) -> None:
         path = safe_static_path(raw_path)

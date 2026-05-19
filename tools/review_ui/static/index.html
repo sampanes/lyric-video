@@ -109,11 +109,23 @@
               <button data-nudge-end="100">+100ms</button>
               <button data-nudge-end="250">+250ms</button>
             </div>
+            <div class="fine-card" title="Shift the selected line and every line after it by the same delta. Negative shifts are clamped so they cannot overlap the previous line.">
+              <span>from here onward</span>
+              <button data-nudge-cascade="-500">-500ms</button>
+              <button data-nudge-cascade="-250">-250ms</button>
+              <button data-nudge-cascade="-100">-100ms</button>
+              <button data-nudge-cascade="-25">-25ms</button>
+              <button data-nudge-cascade="25">+25ms</button>
+              <button data-nudge-cascade="100">+100ms</button>
+              <button data-nudge-cascade="250">+250ms</button>
+              <button data-nudge-cascade="500">+500ms</button>
+            </div>
           </div>
 
           <div class="actions">
             <button id="saveTiming" class="primary">Save Reviewed Timing</button>
             <button id="renderProof">Render Proof</button>
+            <button id="quitServer" title="Stop the local timing review server. Closes the backend; you can close this tab after.">Quit Server</button>
             <span id="saveStatus" class="status"></span>
           </div>
 
