@@ -280,6 +280,7 @@ def main() -> int:
         print(f"Created song folder:\n  {song_dir}")
         print("Drop the audio + lyric files anywhere inside that folder.")
         print(f"(Empty {style_prompt_path.relative_to(song_dir)} is ready for your background description later.)")
+        print(f"(Drop one .txt per Flux candidate into inputs/prompts/ when you get to that step.)")
         input("Press Enter when the files are in place... ")
         print("")
 

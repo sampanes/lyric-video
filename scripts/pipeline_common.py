@@ -67,6 +67,7 @@ MANAGED_INPUT_SCAN_DIRS = {
 REQUIRED_SONG_DIRECTORIES = (
     "inputs/audio",
     "inputs/lyrics",
+    "inputs/prompts",
     "inputs/references",
     "inputs/video",
     "timing/raw/automation",
