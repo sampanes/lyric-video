@@ -12,12 +12,17 @@ import json
 import shutil
 import difflib
 import re
+import sys
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SONGS_ROOT = REPO_ROOT / "songs"
 TEMPLATE_CONFIG = SONGS_ROOT / "template_song" / "song.json"
+
+if str(REPO_ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+from pipeline_common import ensure_song_structure  # noqa: E402
 
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".m4a", ".aac", ".ogg", ".opus"}
 LYRIC_EXTENSIONS = {".txt", ".md", ".lrc"}
@@ -266,10 +271,15 @@ def main() -> int:
     song_dir = resolve_song_dir(folder_input)
     created = not song_dir.exists()
     song_dir.mkdir(parents=True, exist_ok=True)
+    ensure_song_structure(song_dir)
+    style_prompt_path = song_dir / "inputs" / "song_style_prompt.txt"
+    if not style_prompt_path.exists():
+        style_prompt_path.touch()
     if created:
         print("")
         print(f"Created song folder:\n  {song_dir}")
         print("Drop the audio + lyric files anywhere inside that folder.")
+        print(f"(Empty {style_prompt_path.relative_to(song_dir)} is ready for your background description later.)")
         input("Press Enter when the files are in place... ")
         print("")
 
