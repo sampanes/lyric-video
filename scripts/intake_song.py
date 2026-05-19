@@ -152,30 +152,73 @@ def resolve_song_dir(user_value: str) -> Path:
     return slug_path
 
 
+def resolve_typed_path(response: str, song_dir: Path) -> Path | None:
+    candidate = Path(response)
+    if not candidate.is_absolute():
+        candidate = song_dir / response
+    if not candidate.exists():
+        print(f"Path not found: {candidate}")
+        return None
+    if not candidate.is_file():
+        print(f"Path is not a file: {candidate}")
+        return None
+    return candidate
+
+
 def choose_unique(candidates: list[Path], kind: str, song_dir: Path) -> Path:
-    if len(candidates) == 1:
-        return candidates[0]
-    if len(candidates) == 0:
-        print(f"No {kind} file was found in {song_dir}.")
-    else:
-        print(f"Found multiple {kind} files in {song_dir}:")
-        for index, candidate in enumerate(candidates, start=1):
-            print(f"  {index}. {candidate.relative_to(song_dir)}")
+    while True:
+        if len(candidates) == 1:
+            chosen = candidates[0]
+            display = chosen.relative_to(song_dir)
+            response = prompt(f"Use {kind} file '{display}'? [Y/n/path]", "y").strip()
+            lower = response.lower()
+            if lower in ("", "y", "yes"):
+                return chosen
+            if lower in ("n", "no"):
+                manual = prompt(f"Enter {kind} path", "").strip()
+                if not manual:
+                    print("No path provided, rescanning instead.")
+                    candidates = collect_candidates(song_dir, AUDIO_EXTENSIONS if kind == "audio" else LYRIC_EXTENSIONS)
+                    continue
+                typed = resolve_typed_path(manual, song_dir)
+                if typed is not None:
+                    return typed
+                continue
+            typed = resolve_typed_path(response, song_dir)
+            if typed is not None:
+                return typed
+            continue
 
-    response = prompt(
-        f"Enter the {kind} file path relative to the song folder or an absolute path"
-    )
-    if not response:
-        raise SystemExit(f"{kind.capitalize()} file is required.")
+        if len(candidates) > 1:
+            print(f"Found multiple {kind} files in {song_dir}:")
+            for index, candidate in enumerate(candidates, start=1):
+                print(f"  {index}. {candidate.relative_to(song_dir)}")
+            response = prompt(f"Enter number, or a {kind} path", "").strip()
+            if response.isdigit():
+                idx = int(response) - 1
+                if 0 <= idx < len(candidates):
+                    return candidates[idx]
+                print("Number out of range.")
+                continue
+            if response:
+                typed = resolve_typed_path(response, song_dir)
+                if typed is not None:
+                    return typed
+            continue
 
-    chosen = Path(response)
-    if not chosen.is_absolute():
-        chosen = song_dir / chosen
-    if not chosen.exists():
-        raise SystemExit(f"{kind.capitalize()} file not found: {chosen}")
-    if not chosen.is_file():
-        raise SystemExit(f"{kind.capitalize()} path is not a file: {chosen}")
-    return chosen
+        # Zero candidates.
+        print(f"No {kind} file found in:")
+        print(f"  {song_dir}")
+        print(f"Drop the {kind} file anywhere inside that folder.")
+        response = prompt("Press Enter to rescan, type a path, or 'q' to abort", "").strip()
+        if response.lower() == "q":
+            raise SystemExit(f"Aborted before {kind} file was provided.")
+        if response:
+            typed = resolve_typed_path(response, song_dir)
+            if typed is not None:
+                return typed
+            continue
+        candidates = collect_candidates(song_dir, AUDIO_EXTENSIONS if kind == "audio" else LYRIC_EXTENSIONS)
 
 
 def ensure_canonical_location(source: Path, target_dir: Path) -> Path:
@@ -221,7 +264,14 @@ def main() -> int:
         raise SystemExit("Song folder/slug is required.")
 
     song_dir = resolve_song_dir(folder_input)
+    created = not song_dir.exists()
     song_dir.mkdir(parents=True, exist_ok=True)
+    if created:
+        print("")
+        print(f"Created song folder:\n  {song_dir}")
+        print("Drop the audio + lyric files anywhere inside that folder.")
+        input("Press Enter when the files are in place... ")
+        print("")
 
     title_default = caps_version(song_dir.name)
     title = prompt("Song title", title_default)
